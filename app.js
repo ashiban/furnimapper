@@ -46,7 +46,7 @@ const rotationIncrement = 30; // Rotation increment in degrees
 let isScaleDefinitionMode = false; // Flag to track if we're in scale definition mode
 let scaleStartPoint = null; // Starting point of the scale line
 let scaleEndPoint = null; // Ending point of the scale line
-let scalePixelsPerInch = null; // Calculated scale (pixels per inch)
+let scalePixelsPerFoot = null; // Calculated scale (pixels per foot)
 let scaleLine = null; // Reference to the scale line object
 
 // Create temporary line for current drawing
@@ -312,8 +312,8 @@ function resetForNewPolygon() {
         label: ''
     };
 
-    // Disable commit button
-    document.getElementById('commit-btn').disabled = true;
+    // Enable the commit button to allow starting a new polygon
+    document.getElementById('commit-btn').disabled = false;
 }
 
 // This function is now defined at the bottom of the file with additional functionality
@@ -443,7 +443,7 @@ function exportFloorGrid() {
 
     // Create a data structure for export
     let exportData = {
-        scale_pixels_per_inch: scalePixelsPerInch,
+        scale_pixels_per_foot: scalePixelsPerFoot,
         polygons: polygons.map(polygon => ({
             label: polygon.label,
             vertices: polygon.vertices
@@ -451,8 +451,8 @@ function exportFloorGrid() {
         objects: objects.map(obj => ({
             type: obj.type,
             label: obj.label,
-            width_inches: obj.width_inches,
-            height_inches: obj.height_inches,
+            width_feet: obj.width_feet,
+            height_feet: obj.height_feet,
             x_pixels: obj.x_pixels,
             y_pixels: obj.y_pixels,
             rotation_degrees: obj.rotation_degrees || 0 // Include rotation in export
@@ -544,11 +544,35 @@ function importFloorGrid(file) {
                 }
 
                 // Extract and set the scale if available
-                if (typeof importedData.scale_pixels_per_inch === 'number') {
-                    scalePixelsPerInch = importedData.scale_pixels_per_inch;
+                if (typeof importedData.scale_pixels_per_foot === 'number') {
+                    scalePixelsPerFoot = importedData.scale_pixels_per_foot;
                     // Update the scale button text
                     updateScaleButtonText();
-                    console.log(`Imported scale: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
+                    console.log(`Imported scale: ${scalePixelsPerFoot.toFixed(2)} pixels per foot`);
+                } else if (typeof importedData.scale_pixels_per_inch === 'number') {
+                    // Handle legacy format (inches)
+                    scalePixelsPerFoot = importedData.scale_pixels_per_inch * 12; // Convert inches to feet (12 inches = 1 foot)
+                    updateScaleButtonText();
+                    console.log(`Converted legacy scale from inches to feet: ${scalePixelsPerFoot.toFixed(2)} pixels per foot`);
+                } else {
+                    // If scale is not defined in the JSON but objects exist, warn the user
+                    if (importedData.objects && importedData.objects.length > 0) {
+                        console.warn('Warning: Scale is not defined in the imported data but objects exist.');
+                        const defineScale = confirm('The imported file contains objects but no scale definition. Objects need a scale to be displayed correctly. Would you like to define a scale now?');
+
+                        if (defineScale) {
+                            // Exit the import process and let the user define a scale
+                            toggleScaleDefinitionMode();
+                            alert('Please define a scale by drawing a line and specifying its real-world length. Then import the file again.');
+                            return;
+                        } else {
+                            // If user doesn't want to define scale, use a default value
+                            scalePixelsPerFoot = 120; // Default value: 120 pixels per foot (10 pixels per inch * 12)
+                            updateScaleButtonText();
+                            console.log(`Using default scale: ${scalePixelsPerFoot.toFixed(2)} pixels per foot`);
+                            alert('Using default scale of 120 pixels per foot. Objects may not be displayed at the correct size.');
+                        }
+                    }
                 }
 
                 // Validate the polygons array
@@ -571,17 +595,29 @@ function importFloorGrid(file) {
                 if (importedData.objects && Array.isArray(importedData.objects)) {
                     console.log(`Processing ${importedData.objects.length} objects from imported data`);
 
+                    // Check if scale is defined before processing objects
+                    if (scalePixelsPerFoot === null) {
+                        console.error('Scale is not defined. Cannot create objects with proper dimensions.');
+                        alert('Scale is not defined. Please define a scale using the "Define Scale" button before importing objects.');
+                        return;
+                    }
+
                     // Track successfully created objects
                     let successCount = 0;
 
                     importedData.objects.forEach((item, index) => {
                         console.log(`Processing object ${index + 1}:`, item);
                         // Validate required fields
-                        if (!item.type || !item.label || typeof item.width_inches !== 'number' ||
-                            typeof item.height_inches !== 'number' || typeof item.x_pixels !== 'number' ||
-                            typeof item.y_pixels !== 'number') {
+                        if (!item.type || !item.label || typeof item.x_pixels !== 'number' || typeof item.y_pixels !== 'number') {
                             console.error('Invalid object data:', item);
                             throw new Error('Invalid object data: Missing required properties');
+                        }
+
+                        // Check for dimensions in either feet or inches format
+                        if (!((typeof item.width_feet === 'number' && typeof item.height_feet === 'number') ||
+                              (typeof item.width_inches === 'number' && typeof item.height_inches === 'number'))) {
+                            console.error('Invalid object data: Missing dimensions in either feet or inches:', item);
+                            throw new Error('Invalid object data: Missing dimensions');
                         }
 
                         // Create a new object from the imported data
@@ -599,6 +635,7 @@ function importFloorGrid(file) {
                     // If no objects were created successfully but there were objects in the data, show a warning
                     if (successCount === 0 && importedData.objects.length > 0) {
                         console.warn('Warning: Failed to create any objects from the imported data');
+                        alert('Failed to create any objects from the imported data. Please check the console for details.');
                     }
                 } else {
                     console.log('No objects array found in imported data or it is empty');
@@ -1086,8 +1123,8 @@ function exitScaleDefinitionMode() {
 
 // Function to update scale button text based on current scale
 function updateScaleButtonText() {
-    if (scalePixelsPerInch !== null) {
-        defineScaleBtn.textContent = `Scale: ${scalePixelsPerInch.toFixed(2)} px/in`;
+    if (scalePixelsPerFoot !== null) {
+        defineScaleBtn.textContent = `Scale: ${scalePixelsPerFoot.toFixed(2)} px/ft`;
     } else {
         defineScaleBtn.textContent = 'Define Scale';
     }
@@ -1132,8 +1169,8 @@ function completeScaleDefinition() {
         Math.pow(scaleEndPoint.y - scaleStartPoint.y, 2)
     );
 
-    // Prompt the user for the real-world length in inches
-    const realWorldLength = parseFloat(prompt('Enter the real-world length of the drawn line in inches:'));
+    // Prompt the user for the real-world length in feet
+    const realWorldLength = parseFloat(prompt('Enter the real-world length of the drawn line in feet:'));
 
     // Validate the input
     if (isNaN(realWorldLength) || realWorldLength <= 0) {
@@ -1141,8 +1178,8 @@ function completeScaleDefinition() {
         return;
     }
 
-    // Calculate the scale (pixels per inch)
-    scalePixelsPerInch = pixelLength / realWorldLength;
+    // Calculate the scale (pixels per foot)
+    scalePixelsPerFoot = pixelLength / realWorldLength;
 
     // Exit scale definition mode
     exitScaleDefinitionMode();
@@ -1150,7 +1187,7 @@ function completeScaleDefinition() {
     // Update the button text to show the calculated scale
     updateScaleButtonText();
 
-    console.log(`Scale set: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
+    console.log(`Scale set: ${scalePixelsPerFoot.toFixed(2)} pixels per foot`);
 }
 
 // Add mousedown event handler for scale definition and debugging
@@ -1211,7 +1248,7 @@ addRectangleBtn.addEventListener('click', showRectangleModal);
 // Function to show the rectangle modal
 function showRectangleModal() {
     // Check if scale is defined
-    if (scalePixelsPerInch === null) {
+    if (scalePixelsPerFoot === null) {
         alert('Please define the scale using the "Define Scale" button first.');
         return;
     }
@@ -1240,19 +1277,23 @@ addRectangleConfirmBtn.addEventListener('click', createRectangle);
 // Function to create a rectangle
 function createRectangle() {
     // Get the input values
-    const widthInches = parseFloat(rectangleWidthInput.value);
-    const heightInches = parseFloat(rectangleHeightInput.value);
+    const widthFeet = parseFloat(rectangleWidthInput.value);
+    const heightFeet = parseFloat(rectangleHeightInput.value);
     const label = rectangleLabelInput.value.trim() || 'Unnamed Object';
 
     // Validate inputs
-    if (isNaN(widthInches) || widthInches <= 0 || isNaN(heightInches) || heightInches <= 0) {
+    if (isNaN(widthFeet) || widthFeet <= 0 || isNaN(heightFeet) || heightFeet <= 0) {
         alert('Please enter valid positive numbers for width and height.');
         return;
     }
 
+    console.log(`Creating rectangle with dimensions: ${widthFeet}' x ${heightFeet}'`);
+    console.log(`Using scale factor: ${scalePixelsPerFoot.toFixed(2)} pixels per foot`);
+
     // Calculate pixel dimensions using the scale
-    const widthPixels = widthInches * scalePixelsPerInch;
-    const heightPixels = heightInches * scalePixelsPerInch;
+    const widthPixels = widthFeet * scalePixelsPerFoot;
+    const heightPixels = heightFeet * scalePixelsPerFoot;
+    console.log(`Calculated dimensions in pixels: ${widthPixels.toFixed(2)}px x ${heightPixels.toFixed(2)}px`);
 
     // Calculate the center position of the canvas
     const centerX = width / 2 - widthPixels / 2;
@@ -1277,11 +1318,11 @@ function createRectangle() {
         strokeWidth: 2,
     });
 
-    // Create a text label (relative to the group)
+    // Create a text label (relative to the group) that includes dimensions
     const text = new Konva.Text({
         x: 0, // Center position (0,0) since the group is now centered
         y: 0, // Center position (0,0) since the group is now centered
-        text: label,
+        text: `${label} (${widthFeet}' x ${heightFeet}')`,
         fontSize: 16,
         fontFamily: 'Arial',
         fill: '#000',
@@ -1305,8 +1346,8 @@ function createRectangle() {
     objects.push({
         type: 'rectangle',
         label: label,
-        width_inches: widthInches,
-        height_inches: heightInches,
+        width_feet: widthFeet,
+        height_feet: heightFeet,
         x_pixels: centerX,
         y_pixels: centerY,
         rotation_degrees: 0, // Initialize rotation to 0 degrees
@@ -1321,7 +1362,7 @@ function createRectangle() {
         // Subtract half width/height to store the top-left position
         objects[objectIndex].x_pixels = group.x() - widthPixels / 2;
         objects[objectIndex].y_pixels = group.y() - heightPixels / 2;
-        console.log('Group dragged to:', objects[objectIndex].x_pixels, objects[objectIndex].y_pixels);
+        console.log(`Object ${label} moved to position: (${objects[objectIndex].x_pixels.toFixed(2)}, ${objects[objectIndex].y_pixels.toFixed(2)})`);
     });
 
     // Add click handler for selection
@@ -1331,7 +1372,7 @@ function createRectangle() {
 
         // Select this object
         selectObject(objectIndex);
-        console.log('Group clicked, draggable:', group.draggable());
+        console.log(`Object ${label} selected, draggable: ${group.draggable()}`);
     });
 
     // Hide the modal
@@ -1342,6 +1383,8 @@ function createRectangle() {
 
     // Redraw the layer
     layer.batchDraw();
+
+    console.log(`Successfully created object: ${label} with dimensions ${widthFeet}' x ${heightFeet}'`);
 }
 
 // Function to select an object
@@ -1404,12 +1447,38 @@ function deselectObject() {
 
 // Function to create an object from imported data
 function createObjectFromData(objectData) {
+    // Check if scale is defined
+    if (scalePixelsPerFoot === null) {
+        console.error('Scale is not defined. Cannot create object with proper dimensions.');
+        return false;
+    }
+
     if (objectData.type === 'rectangle') {
         console.log('Creating rectangle object:', objectData);
+        console.log(`Using scale factor: ${scalePixelsPerFoot.toFixed(2)} pixels per foot`);
+
+        // Handle both new format (feet) and legacy format (inches)
+        let widthFeet, heightFeet;
+
+        if (objectData.width_feet !== undefined && objectData.height_feet !== undefined) {
+            // New format (feet)
+            widthFeet = objectData.width_feet;
+            heightFeet = objectData.height_feet;
+            console.log(`Original dimensions in feet: ${widthFeet}' x ${heightFeet}'`);
+        } else if (objectData.width_inches !== undefined && objectData.height_inches !== undefined) {
+            // Legacy format (inches) - convert to feet
+            widthFeet = objectData.width_inches / 12;
+            heightFeet = objectData.height_inches / 12;
+            console.log(`Converted dimensions from inches to feet: ${widthFeet.toFixed(2)}' x ${heightFeet.toFixed(2)}'`);
+        } else {
+            console.error('Invalid object data: Missing width and height dimensions');
+            return false;
+        }
 
         // Calculate pixel dimensions using the scale
-        const widthPixels = objectData.width_inches * scalePixelsPerInch;
-        const heightPixels = objectData.height_inches * scalePixelsPerInch;
+        const widthPixels = widthFeet * scalePixelsPerFoot;
+        const heightPixels = heightFeet * scalePixelsPerFoot;
+        console.log(`Calculated dimensions in pixels: ${widthPixels.toFixed(2)}px x ${heightPixels.toFixed(2)}px`);
 
         // Calculate the center position for the group
         const centerX = objectData.x_pixels + widthPixels / 2;
@@ -1422,7 +1491,7 @@ function createObjectFromData(objectData) {
             draggable: true,
         });
 
-        console.log(`Creating object at position: (${centerX}, ${centerY}) with dimensions: ${widthPixels}x${heightPixels} pixels`);
+        console.log(`Creating object at position: (${centerX.toFixed(2)}, ${centerY.toFixed(2)}) with dimensions: ${widthPixels.toFixed(2)}x${heightPixels.toFixed(2)} pixels`);
 
         // Create a rectangle shape (relative to the group)
         const rect = new Konva.Rect({
@@ -1439,7 +1508,7 @@ function createObjectFromData(objectData) {
         const text = new Konva.Text({
             x: 0, // Center position (0,0) since the group is now centered
             y: 0, // Center position (0,0) since the group is now centered
-            text: objectData.label,
+            text: `${objectData.label} (${widthFeet.toFixed(1)}' x ${heightFeet.toFixed(1)}')`,
             fontSize: 16,
             fontFamily: 'Arial',
             fill: '#000',
@@ -1463,8 +1532,8 @@ function createObjectFromData(objectData) {
         objects.push({
             type: 'rectangle',
             label: objectData.label,
-            width_inches: objectData.width_inches,
-            height_inches: objectData.height_inches,
+            width_feet: widthFeet,
+            height_feet: heightFeet,
             x_pixels: objectData.x_pixels,
             y_pixels: objectData.y_pixels,
             rotation_degrees: objectData.rotation_degrees || 0, // Use imported rotation or default to 0
@@ -1484,7 +1553,7 @@ function createObjectFromData(objectData) {
             // Subtract half width/height to store the top-left position
             objects[objectIndex].x_pixels = group.x() - widthPixels / 2;
             objects[objectIndex].y_pixels = group.y() - heightPixels / 2;
-            console.log(`Object ${objectData.label} moved to position: (${objects[objectIndex].x_pixels}, ${objects[objectIndex].y_pixels})`);
+            console.log(`Object ${objectData.label} moved to position: (${objects[objectIndex].x_pixels.toFixed(2)}, ${objects[objectIndex].y_pixels.toFixed(2)})`);
         });
 
         // Add click handler for selection

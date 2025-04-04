@@ -17,8 +17,8 @@
             <p>You can upload a floor plan image as a background to trace over.</p>
             <p>To edit a polygon, click on it to select it. Red handles will appear at each vertex. Drag these handles to reshape the polygon. Click anywhere outside the polygon to commit your changes.</p>
             <p>When a polygon is selected, you can click the "Delete Polygon" button to remove it.</p>
-            <p>Use the <strong>Define Scale</strong> button to set the real-world scale of your floor plan. Draw a horizontal or vertical line and specify its length in inches.</p>
-            <p>Use the <strong>Add Rectangle</strong> button to add furniture or other objects to your floor plan. You'll need to define the scale first, then specify the width and height in inches.</p>
+            <p>Use the <strong>Define Scale</strong> button to set the real-world scale of your floor plan. Draw a horizontal or vertical line and specify its length in feet.</p>
+            <p>Use the <strong>Add Rectangle</strong> button to add furniture or other objects to your floor plan. You'll need to define the scale first, then specify the width and height in feet.</p>
             <p>Use the <strong>Rotate Object</strong> button to rotate the currently selected object in 15-degree increments.</p>
             <p>Use the <strong>Export Floor Grid</strong> button to save your work as a JSON file, and <strong>Import Floor Grid</strong> to load a previously saved floor plan.</p>
         </div>
@@ -62,12 +62,12 @@
         <div class="modal-content">
             <h3>Add Rectangle</h3>
             <div class="input-group">
-                <label for="rectangle-width">Width (inches):</label>
-                <input type="number" id="rectangle-width" min="1" step="0.1" placeholder="Enter width">
+                <label for="rectangle-width">Width (feet):</label>
+                <input type="number" id="rectangle-width" min="0.1" step="0.1" placeholder="Enter width">
             </div>
             <div class="input-group">
-                <label for="rectangle-height">Height (inches):</label>
-                <input type="number" id="rectangle-height" min="1" step="0.1" placeholder="Enter height">
+                <label for="rectangle-height">Height (feet):</label>
+                <input type="number" id="rectangle-height" min="0.1" step="0.1" placeholder="Enter height">
             </div>
             <div class="input-group">
                 <label for="rectangle-label">Label:</label>

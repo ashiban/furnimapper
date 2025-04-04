@@ -1,0 +1,43 @@
+{
+  "scale_pixels_per_inch": 10,
+  "polygons": [
+    {
+      "label": "Living Room",
+      "vertices": [
+        { "x": 100, "y": 100 },
+        { "x": 400, "y": 100 },
+        { "x": 400, "y": 300 },
+        { "x": 100, "y": 300 }
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "type": "rectangle",
+      "label": "Desk",
+      "width_inches": 60,
+      "height_inches": 30,
+      "x_pixels": 150,
+      "y_pixels": 150,
+      "rotation_degrees": 0
+    },
+    {
+      "type": "rectangle",
+      "label": "Chair",
+      "width_inches": 24,
+      "height_inches": 24,
+      "x_pixels": 250,
+      "y_pixels": 200,
+      "rotation_degrees": 45
+    },
+    {
+      "type": "rectangle",
+      "label": "TV",
+      "width_inches": 55,
+      "height_inches": 32,
+      "x_pixels": 300,
+      "y_pixels": 120,
+      "rotation_degrees": 0
+    }
+  ]
+}
