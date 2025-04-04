@@ -153,9 +153,20 @@ button:disabled {
     font-size: 16px;
 }
 
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
 .modal-buttons {
     display: flex;
     justify-content: flex-end;
+    gap: 10px;
 }
 
 /* Import button and file name styles */
@@ -179,6 +190,15 @@ button:disabled {
 .scale-btn.active {
     background-color: #FF5722; /* Orange when active */
     box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
+}
+
+/* Rectangle button styles */
+.rectangle-btn {
+    background-color: #3F51B5; /* Indigo color for rectangle button */
+}
+
+.rectangle-btn:hover {
+    background-color: #303F9F;
 }
 
 .file-name {

@@ -20,6 +20,9 @@ stage.add(layer);
 // Data structure to store all polygons
 let polygons = [];
 
+// Data structure to store all objects (rectangles, etc.)
+let objects = [];
+
 // State variables for current polygon
 let currentPolygon = {
     points: [],
@@ -65,6 +68,17 @@ const polygonLabelInput = document.getElementById('polygon-label');
 const saveLabelBtn = document.getElementById('save-label-btn');
 const polygonCounter = document.getElementById('polygon-counter');
 
+// Rectangle modal elements
+const rectangleModal = document.getElementById('rectangle-modal');
+const rectangleWidthInput = document.getElementById('rectangle-width');
+const rectangleHeightInput = document.getElementById('rectangle-height');
+const rectangleLabelInput = document.getElementById('rectangle-label');
+const addRectangleConfirmBtn = document.getElementById('add-rectangle-confirm-btn');
+const cancelRectangleBtn = document.getElementById('cancel-rectangle-btn');
+
+// State variables for rectangle selection
+let selectedObjectIndex = -1; // Index of the currently selected object (-1 means none)
+
 // Context menu elements
 const contextMenu = document.getElementById('context-menu');
 const contextMenuDeleteBtn = document.getElementById('context-menu').querySelector('.context-menu-item');
@@ -74,6 +88,16 @@ let rightClickedPolygonIndex = -1; // Index of the polygon that was right-clicke
 stage.on('click', (e) => {
     // Get the clicked target
     const clickedTarget = e.target;
+
+    // Check if we clicked on a rectangle (prioritize rectangle selection)
+    const clickedOnRect = clickedTarget instanceof Konva.Rect;
+    const clickedOnText = clickedTarget instanceof Konva.Text;
+
+    // If we clicked on a rectangle or its text, don't proceed further
+    // The rectangle's own click handler will handle selection
+    if (clickedOnRect || clickedOnText) {
+        return;
+    }
 
     // Check if we clicked on a polygon
     const clickedOnPolygon = clickedTarget instanceof Konva.Line && clickedTarget.closed();
@@ -94,6 +118,11 @@ stage.on('click', (e) => {
             deselectPolygon();
         }
         return;
+    }
+
+    // If we clicked on the stage (not on any object), deselect any selected object
+    if (clickedTarget === stage) {
+        deselectObject();
     }
 
     // If we're in drawing mode and not in edit mode
@@ -1064,8 +1093,14 @@ function completeScaleDefinition() {
     console.log(`Scale set: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
 }
 
-// Add mousedown event handler for scale definition
+// Add mousedown event handler for scale definition and debugging
 stage.on('mousedown', (e) => {
+    // Debug info
+    const target = e.target;
+    if (target instanceof Konva.Rect) {
+        console.log('Mousedown on rectangle, draggable:', target.draggable());
+    }
+
     // Only handle mousedown in scale definition mode
     if (!isScaleDefinitionMode) return;
 
@@ -1106,6 +1141,436 @@ stage.on('mouseup', (e) => {
     // Complete the scale definition process
     completeScaleDefinition();
 });
+
+// Rectangle functionality
+
+// Add Rectangle button handler
+const addRectangleBtn = document.getElementById('add-rectangle-btn');
+addRectangleBtn.addEventListener('click', showRectangleModal);
+
+// Function to show the rectangle modal
+function showRectangleModal() {
+    // Check if scale is defined
+    if (scalePixelsPerInch === null) {
+        alert('Please define the scale using the "Define Scale" button first.');
+        return;
+    }
+
+    // Reset input fields
+    rectangleWidthInput.value = '';
+    rectangleHeightInput.value = '';
+    rectangleLabelInput.value = '';
+
+    // Show the modal
+    rectangleModal.classList.add('show');
+    rectangleWidthInput.focus();
+}
+
+// Function to hide the rectangle modal
+function hideRectangleModal() {
+    rectangleModal.classList.remove('show');
+}
+
+// Cancel button handler
+cancelRectangleBtn.addEventListener('click', hideRectangleModal);
+
+// Add Rectangle Confirm button handler
+addRectangleConfirmBtn.addEventListener('click', createRectangle);
+
+// Function to create a rectangle
+function createRectangle() {
+    // Get the input values
+    const widthInches = parseFloat(rectangleWidthInput.value);
+    const heightInches = parseFloat(rectangleHeightInput.value);
+    const label = rectangleLabelInput.value.trim() || 'Unnamed Object';
+
+    // Validate inputs
+    if (isNaN(widthInches) || widthInches <= 0 || isNaN(heightInches) || heightInches <= 0) {
+        alert('Please enter valid positive numbers for width and height.');
+        return;
+    }
+
+    // Calculate pixel dimensions using the scale
+    const widthPixels = widthInches * scalePixelsPerInch;
+    const heightPixels = heightInches * scalePixelsPerInch;
+
+    // Calculate the center position of the canvas
+    const centerX = width / 2 - widthPixels / 2;
+    const centerY = height / 2 - heightPixels / 2;
+
+    // Create a group to hold both the rectangle and text
+    // This allows us to drag them together as a single unit
+    const group = new Konva.Group({
+        x: centerX,
+        y: centerY,
+        draggable: true,
+    });
+
+    // Create a rectangle shape (relative to the group)
+    const rect = new Konva.Rect({
+        x: 0,
+        y: 0,
+        width: widthPixels,
+        height: heightPixels,
+        fill: getRandomColor(0.6), // Different opacity to distinguish from room polygons
+        stroke: '#000',
+        strokeWidth: 2,
+    });
+
+    // Create a text label (relative to the group)
+    const text = new Konva.Text({
+        x: widthPixels / 2,
+        y: heightPixels / 2,
+        text: label,
+        fontSize: 16,
+        fontFamily: 'Arial',
+        fill: '#000',
+        align: 'center',
+        verticalAlign: 'middle',
+    });
+
+    // Center the text
+    text.offsetX(text.width() / 2);
+    text.offsetY(text.height() / 2);
+
+    // Add the rectangle and text to the group
+    group.add(rect);
+    group.add(text);
+
+    // Add the group to the layer
+    layer.add(group);
+
+    // Store the object data
+    const objectIndex = objects.length;
+    objects.push({
+        type: 'rectangle',
+        label: label,
+        width_inches: widthInches,
+        height_inches: heightInches,
+        x_pixels: centerX,
+        y_pixels: centerY,
+        group: group,
+        shape: rect,
+        text: text
+    });
+
+    // Add drag event handlers to update stored position
+    group.on('dragend', () => {
+        // Update the stored position
+        objects[objectIndex].x_pixels = group.x();
+        objects[objectIndex].y_pixels = group.y();
+        console.log('Group dragged to:', group.x(), group.y());
+    });
+
+    // Add click handler for selection
+    group.on('click', (e) => {
+        // Prevent the event from bubbling to the stage
+        e.cancelBubble = true;
+
+        // Select this object
+        selectObject(objectIndex);
+        console.log('Group clicked, draggable:', group.draggable());
+    });
+
+    // Hide the modal
+    hideRectangleModal();
+
+    // Select the newly created object
+    selectObject(objectIndex);
+
+    // Redraw the layer
+    layer.batchDraw();
+}
+
+// Function to select an object
+function selectObject(index) {
+    // Deselect any previously selected polygon
+    if (selectedPolygonIndex !== -1) {
+        deselectPolygon();
+    }
+
+    // Deselect any previously selected object
+    if (selectedObjectIndex !== -1) {
+        deselectObject();
+    }
+
+    // Set the new selected object
+    selectedObjectIndex = index;
+
+    // Highlight the selected object
+    const selectedObject = objects[selectedObjectIndex];
+    selectedObject.shape.stroke('#ff0000');
+    selectedObject.shape.strokeWidth(3);
+
+    // Ensure the group is draggable
+    selectedObject.group.draggable(true);
+
+    // Bring the selected object to the front
+    selectedObject.group.moveToTop();
+
+    // Redraw the layer
+    layer.batchDraw();
+
+    console.log('Object selected:', selectedObject);
+}
+
+// Function to deselect an object
+function deselectObject() {
+    if (selectedObjectIndex === -1) return;
+
+    // Reset the appearance of the previously selected object
+    const selectedObject = objects[selectedObjectIndex];
+    selectedObject.shape.stroke('#000');
+    selectedObject.shape.strokeWidth(2);
+
+    // Reset the selected object index
+    selectedObjectIndex = -1;
+
+    // Redraw the layer
+    layer.batchDraw();
+}
+
+// Note: The stage click handler has been modified above to prioritize rectangle selection
+
+// Update the JSON export function to include objects
+const originalExportFloorGrid = exportFloorGrid;
+exportFloorGrid = function() {
+    // Check if we have any polygons to export
+    if (polygons.length === 0 && objects.length === 0) {
+        alert('No polygons or objects to export. Create at least one polygon or object first.');
+        return;
+    }
+
+    // Create a data structure for export
+    let exportData = {
+        scale_pixels_per_inch: scalePixelsPerInch,
+        polygons: polygons.map(polygon => ({
+            label: polygon.label,
+            vertices: polygon.vertices
+        })),
+        objects: objects.map(obj => ({
+            type: obj.type,
+            label: obj.label,
+            width_inches: obj.width_inches,
+            height_inches: obj.height_inches,
+            x_pixels: obj.x_pixels,
+            y_pixels: obj.y_pixels
+        }))
+    };
+
+    // Convert to JSON string with pretty formatting
+    const jsonString = JSON.stringify(exportData, null, 2);
+
+    // Create a blob with the JSON data
+    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    // Create a URL for the blob
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary anchor element
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'floor_grid.json';
+
+    // Append to the document, click it, and remove it
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Clean up by revoking the URL
+    URL.revokeObjectURL(url);
+};
+
+// Update the import function to handle objects
+const originalImportFloorGrid = importFloorGrid;
+importFloorGrid = function(file) {
+    if (!file) return;
+
+    // Only process JSON files
+    if (file.type !== 'application/json') {
+        alert('Please select a JSON file');
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+        try {
+            // Parse the JSON data
+            const importedData = JSON.parse(event.target.result);
+
+            // Clear existing polygons and objects
+            clearAllPolygons();
+            clearAllObjects();
+
+            // Check if the imported data is in the new format (with scale)
+            if (importedData && typeof importedData === 'object' && !Array.isArray(importedData)) {
+                // Extract and set the scale if available
+                if (typeof importedData.scale_pixels_per_inch === 'number') {
+                    scalePixelsPerInch = importedData.scale_pixels_per_inch;
+                    // Update the scale button text
+                    updateScaleButtonText();
+                    console.log(`Imported scale: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
+                }
+
+                // Process polygons if available
+                if (Array.isArray(importedData.polygons)) {
+                    importedData.polygons.forEach(item => {
+                        // Validate required fields
+                        if (!item.label || !Array.isArray(item.vertices)) {
+                            throw new Error('Invalid polygon data: Missing label or vertices');
+                        }
+
+                        // Create a new polygon from the imported data
+                        createPolygonFromData(item);
+                    });
+                }
+
+                // Process objects if available
+                if (Array.isArray(importedData.objects)) {
+                    importedData.objects.forEach(item => {
+                        // Validate required fields
+                        if (!item.type || !item.label || typeof item.width_inches !== 'number' ||
+                            typeof item.height_inches !== 'number' || typeof item.x_pixels !== 'number' ||
+                            typeof item.y_pixels !== 'number') {
+                            throw new Error('Invalid object data: Missing required properties');
+                        }
+
+                        // Create a new object from the imported data
+                        createObjectFromData(item);
+                    });
+                }
+
+                // Update the polygon counter
+                updatePolygonCounter();
+
+                // Show success message
+                alert(`Successfully imported ${importedData.polygons ? importedData.polygons.length : 0} polygons and ${importedData.objects ? importedData.objects.length : 0} objects`);
+            } else if (Array.isArray(importedData)) {
+                // Old format (array of polygons without scale or objects)
+                importedData.forEach(item => {
+                    // Validate required fields
+                    if (!item.label || !Array.isArray(item.vertices)) {
+                        throw new Error('Invalid polygon data: Missing label or vertices');
+                    }
+
+                    // Create a new polygon from the imported data
+                    createPolygonFromData(item);
+                });
+
+                // Update the polygon counter
+                updatePolygonCounter();
+
+                // Show success message
+                alert(`Successfully imported ${importedData.length} polygons`);
+            } else {
+                throw new Error('Invalid JSON format: Expected an array or an object with polygons property');
+            }
+        } catch (error) {
+            console.error('Error importing floor grid:', error);
+            alert(`Error importing floor grid: ${error.message}`);
+        }
+    };
+
+    reader.readAsText(file);
+};
+
+// Function to create an object from imported data
+function createObjectFromData(objectData) {
+    if (objectData.type === 'rectangle') {
+        // Calculate pixel dimensions using the scale
+        const widthPixels = objectData.width_inches * scalePixelsPerInch;
+        const heightPixels = objectData.height_inches * scalePixelsPerInch;
+
+        // Create a group to hold both the rectangle and text
+        const group = new Konva.Group({
+            x: objectData.x_pixels,
+            y: objectData.y_pixels,
+            draggable: true,
+        });
+
+        // Create a rectangle shape (relative to the group)
+        const rect = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: widthPixels,
+            height: heightPixels,
+            fill: getRandomColor(0.6),
+            stroke: '#000',
+            strokeWidth: 2,
+        });
+
+        // Create a text label (relative to the group)
+        const text = new Konva.Text({
+            x: widthPixels / 2,
+            y: heightPixels / 2,
+            text: objectData.label,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            fill: '#000',
+            align: 'center',
+            verticalAlign: 'middle',
+        });
+
+        // Center the text
+        text.offsetX(text.width() / 2);
+        text.offsetY(text.height() / 2);
+
+        // Add the rectangle and text to the group
+        group.add(rect);
+        group.add(text);
+
+        // Add the group to the layer
+        layer.add(group);
+
+        // Store the object data
+        const objectIndex = objects.length;
+        objects.push({
+            type: 'rectangle',
+            label: objectData.label,
+            width_inches: objectData.width_inches,
+            height_inches: objectData.height_inches,
+            x_pixels: objectData.x_pixels,
+            y_pixels: objectData.y_pixels,
+            group: group,
+            shape: rect,
+            text: text
+        });
+
+        // Add drag event handlers to update stored position
+        group.on('dragend', () => {
+            // Update the stored position
+            objects[objectIndex].x_pixels = group.x();
+            objects[objectIndex].y_pixels = group.y();
+        });
+
+        // Add click handler for selection
+        group.on('click', (e) => {
+            // Prevent the event from bubbling to the stage
+            e.cancelBubble = true;
+
+            // Select this object
+            selectObject(objectIndex);
+        });
+    }
+}
+
+// Function to clear all objects
+function clearAllObjects() {
+    // Remove all object groups from the layer
+    objects.forEach(obj => {
+        obj.group.destroy(); // This will also destroy all children (rect and text)
+    });
+
+    // Clear the objects array
+    objects = [];
+
+    // Reset the selected object index
+    selectedObjectIndex = -1;
+
+    // Redraw the layer
+    layer.batchDraw();
+}
 
 // Initial setup
 updateExportButtonState();
