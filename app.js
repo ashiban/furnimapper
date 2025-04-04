@@ -35,6 +35,13 @@ let selectedPolygonIndex = -1; // Index of the currently selected polygon (-1 me
 let vertexHandles = []; // Array to store vertex handle objects
 let isEditMode = false; // Flag to track if we're in edit mode
 
+// State variables for scale definition
+let isScaleDefinitionMode = false; // Flag to track if we're in scale definition mode
+let scaleStartPoint = null; // Starting point of the scale line
+let scaleEndPoint = null; // Ending point of the scale line
+let scalePixelsPerInch = null; // Calculated scale (pixels per inch)
+let scaleLine = null; // Reference to the scale line object
+
 // Create temporary line for current drawing
 let tempLine = new Konva.Line({
     points: [],
@@ -42,6 +49,15 @@ let tempLine = new Konva.Line({
     strokeWidth: 2,
 });
 layer.add(tempLine);
+
+// Create temporary line for scale definition
+let tempScaleLine = new Konva.Line({
+    points: [],
+    stroke: '#FF5722', // Orange color for scale line
+    strokeWidth: 3,
+    dash: [10, 5], // Dashed line for visual distinction
+});
+layer.add(tempScaleLine);
 
 // Modal elements
 const labelModal = document.getElementById('label-modal');
@@ -392,11 +408,26 @@ function exportFloorGrid() {
         return;
     }
 
-    // Create a clean data structure with only the necessary data
-    const exportData = polygons.map(polygon => ({
-        label: polygon.label,
-        vertices: polygon.vertices
-    }));
+    // Create a data structure for export
+    // If scale is defined, include it in the export data
+    let exportData;
+
+    if (scalePixelsPerInch !== null) {
+        // Include scale in the export data
+        exportData = {
+            scale_pixels_per_inch: scalePixelsPerInch,
+            polygons: polygons.map(polygon => ({
+                label: polygon.label,
+                vertices: polygon.vertices
+            }))
+        };
+    } else {
+        // Maintain backward compatibility with old format if no scale is defined
+        exportData = polygons.map(polygon => ({
+            label: polygon.label,
+            vertices: polygon.vertices
+        }));
+    }
 
     // Convert to JSON string with pretty formatting
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -453,30 +484,66 @@ function importFloorGrid(file) {
             // Parse the JSON data
             const importedData = JSON.parse(event.target.result);
 
-            // Validate the data structure
-            if (!Array.isArray(importedData)) {
-                throw new Error('Invalid JSON format: Expected an array');
-            }
-
             // Clear existing polygons
             clearAllPolygons();
 
-            // Process each polygon in the imported data
-            importedData.forEach(item => {
-                // Validate required fields
-                if (!item.label || !Array.isArray(item.vertices)) {
-                    throw new Error('Invalid polygon data: Missing label or vertices');
+            // Check if the imported data is in the new format (with scale)
+            if (importedData && typeof importedData === 'object' && !Array.isArray(importedData) && importedData.polygons) {
+                // New format with scale
+
+                // Extract and set the scale if available
+                if (typeof importedData.scale_pixels_per_inch === 'number') {
+                    scalePixelsPerInch = importedData.scale_pixels_per_inch;
+                    // Update the scale button text
+                    updateScaleButtonText();
+                    console.log(`Imported scale: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
                 }
 
-                // Create a new polygon from the imported data
-                createPolygonFromData(item);
-            });
+                // Validate the polygons array
+                if (!Array.isArray(importedData.polygons)) {
+                    throw new Error('Invalid JSON format: Expected polygons to be an array');
+                }
 
-            // Update the polygon counter
-            updatePolygonCounter();
+                // Process each polygon in the imported data
+                importedData.polygons.forEach(item => {
+                    // Validate required fields
+                    if (!item.label || !Array.isArray(item.vertices)) {
+                        throw new Error('Invalid polygon data: Missing label or vertices');
+                    }
 
-            // Show success message
-            alert(`Successfully imported ${importedData.length} polygons`);
+                    // Create a new polygon from the imported data
+                    createPolygonFromData(item);
+                });
+
+                // Update the polygon counter
+                updatePolygonCounter();
+
+                // Show success message
+                alert(`Successfully imported ${importedData.polygons.length} polygons with scale information`);
+
+            } else if (Array.isArray(importedData)) {
+                // Old format (array of polygons without scale)
+
+                // Process each polygon in the imported data
+                importedData.forEach(item => {
+                    // Validate required fields
+                    if (!item.label || !Array.isArray(item.vertices)) {
+                        throw new Error('Invalid polygon data: Missing label or vertices');
+                    }
+
+                    // Create a new polygon from the imported data
+                    createPolygonFromData(item);
+                });
+
+                // Update the polygon counter
+                updatePolygonCounter();
+
+                // Show success message
+                alert(`Successfully imported ${importedData.length} polygons`);
+
+            } else {
+                throw new Error('Invalid JSON format: Expected an array or an object with polygons property');
+            }
 
         } catch (error) {
             console.error('Error importing floor grid:', error);
@@ -873,6 +940,171 @@ stage.on('contextmenu', (e) => {
     if (!(e.target instanceof Konva.Line && e.target.closed())) {
         e.evt.preventDefault();
     }
+});
+
+// Scale Definition Button Handler
+const defineScaleBtn = document.getElementById('define-scale-btn');
+defineScaleBtn.addEventListener('click', toggleScaleDefinitionMode);
+
+// Function to toggle scale definition mode
+function toggleScaleDefinitionMode() {
+    // If we're already in scale definition mode, exit it
+    if (isScaleDefinitionMode) {
+        exitScaleDefinitionMode();
+        return;
+    }
+
+    // Enter scale definition mode
+    isScaleDefinitionMode = true;
+
+    // Disable other buttons while in scale definition mode
+    document.getElementById('commit-btn').disabled = true;
+    document.getElementById('delete-polygon-btn').disabled = true;
+
+    // Update button appearance
+    defineScaleBtn.classList.add('active');
+    defineScaleBtn.textContent = 'Cancel Scale Definition';
+
+    // Reset scale points
+    scaleStartPoint = null;
+    scaleEndPoint = null;
+
+    // Clear any existing temporary scale line
+    tempScaleLine.points([]);
+    layer.batchDraw();
+}
+
+// Function to exit scale definition mode
+function exitScaleDefinitionMode() {
+    isScaleDefinitionMode = false;
+
+    // Reset button appearance
+    defineScaleBtn.classList.remove('active');
+
+    // Update button text based on whether scale is set
+    updateScaleButtonText();
+
+    // Re-enable other buttons
+    document.getElementById('commit-btn').disabled = false;
+    if (selectedPolygonIndex !== -1) {
+        document.getElementById('delete-polygon-btn').disabled = false;
+    }
+
+    // Clear any temporary scale line
+    tempScaleLine.points([]);
+    layer.batchDraw();
+}
+
+// Function to update scale button text based on current scale
+function updateScaleButtonText() {
+    if (scalePixelsPerInch !== null) {
+        defineScaleBtn.textContent = `Scale: ${scalePixelsPerInch.toFixed(2)} px/in`;
+    } else {
+        defineScaleBtn.textContent = 'Define Scale';
+    }
+}
+
+// Function to handle scale line drawing
+function handleScaleLineDrawing(pos) {
+    if (!scaleStartPoint) return;
+
+    // Calculate the difference in x and y coordinates
+    const dx = pos.x - scaleStartPoint.x;
+    const dy = pos.y - scaleStartPoint.y;
+
+    // Determine if the line should be horizontal or vertical based on which delta is larger
+    let endX, endY;
+
+    if (Math.abs(dx) >= Math.abs(dy)) {
+        // Horizontal line
+        endX = pos.x;
+        endY = scaleStartPoint.y; // Keep y coordinate the same
+    } else {
+        // Vertical line
+        endX = scaleStartPoint.x; // Keep x coordinate the same
+        endY = pos.y;
+    }
+
+    // Update the temporary scale line
+    tempScaleLine.points([scaleStartPoint.x, scaleStartPoint.y, endX, endY]);
+    layer.batchDraw();
+
+    // Store the current end point
+    scaleEndPoint = { x: endX, y: endY };
+}
+
+// Function to complete scale definition
+function completeScaleDefinition() {
+    if (!scaleStartPoint || !scaleEndPoint) return;
+
+    // Calculate the pixel length of the line
+    const pixelLength = Math.sqrt(
+        Math.pow(scaleEndPoint.x - scaleStartPoint.x, 2) +
+        Math.pow(scaleEndPoint.y - scaleStartPoint.y, 2)
+    );
+
+    // Prompt the user for the real-world length in inches
+    const realWorldLength = parseFloat(prompt('Enter the real-world length of the drawn line in inches:'));
+
+    // Validate the input
+    if (isNaN(realWorldLength) || realWorldLength <= 0) {
+        alert('Please enter a valid positive number for the length.');
+        return;
+    }
+
+    // Calculate the scale (pixels per inch)
+    scalePixelsPerInch = pixelLength / realWorldLength;
+
+    // Exit scale definition mode
+    exitScaleDefinitionMode();
+
+    // Update the button text to show the calculated scale
+    updateScaleButtonText();
+
+    console.log(`Scale set: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
+}
+
+// Add mousedown event handler for scale definition
+stage.on('mousedown', (e) => {
+    // Only handle mousedown in scale definition mode
+    if (!isScaleDefinitionMode) return;
+
+    // Get mouse position relative to the stage
+    const pos = stage.getPointerPosition();
+
+    // Set the start point for the scale line
+    scaleStartPoint = { x: pos.x, y: pos.y };
+
+    // Initialize the temporary scale line
+    tempScaleLine.points([pos.x, pos.y, pos.x, pos.y]);
+    layer.batchDraw();
+});
+
+// Add mousemove event handler for scale definition
+stage.on('mousemove', (e) => {
+    // Only handle mousemove in scale definition mode and if we have a start point
+    if (!isScaleDefinitionMode || !scaleStartPoint) return;
+
+    // Get mouse position relative to the stage
+    const pos = stage.getPointerPosition();
+
+    // Update the scale line
+    handleScaleLineDrawing(pos);
+});
+
+// Add mouseup event handler for scale definition
+stage.on('mouseup', (e) => {
+    // Only handle mouseup in scale definition mode and if we have a start point
+    if (!isScaleDefinitionMode || !scaleStartPoint) return;
+
+    // Get mouse position relative to the stage
+    const pos = stage.getPointerPosition();
+
+    // Finalize the scale line
+    handleScaleLineDrawing(pos);
+
+    // Complete the scale definition process
+    completeScaleDefinition();
 });
 
 // Initial setup

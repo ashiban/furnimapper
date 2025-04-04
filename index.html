@@ -17,6 +17,7 @@
             <p>You can upload a floor plan image as a background to trace over.</p>
             <p>To edit a polygon, click on it to select it. Red handles will appear at each vertex. Drag these handles to reshape the polygon. Click anywhere outside the polygon to commit your changes.</p>
             <p>When a polygon is selected, you can click the "Delete Polygon" button to remove it.</p>
+            <p>Use the <strong>Define Scale</strong> button to set the real-world scale of your floor plan. Draw a horizontal or vertical line and specify its length in inches.</p>
             <p>Use the <strong>Export Floor Grid</strong> button to save your work as a JSON file, and <strong>Import Floor Grid</strong> to load a previously saved floor plan.</p>
         </div>
         <div class="canvas-wrapper">
@@ -34,6 +35,7 @@
         <div class="controls">
             <button id="commit-btn" disabled>Commit Polygon</button>
             <button id="delete-polygon-btn" disabled>Delete Polygon</button>
+            <button id="define-scale-btn" class="scale-btn">Define Scale</button>
             <button id="export-btn" disabled>Export Floor Grid</button>
             <div id="polygon-counter">Polygons: 0</div>
         </div>

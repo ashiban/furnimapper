@@ -38,7 +38,7 @@ h3 {
     background-color: #f8f9fa;
     border-left: 4px solid #6c757d;
     border-radius: 4px;
-    display: none; /* Hide the instructions */
+    /* Make instructions visible by default */
 }
 
 .canvas-wrapper {
@@ -165,6 +165,20 @@ button:disabled {
 
 .import-btn:hover {
     background-color: #0b7dda;
+}
+
+/* Scale button styles */
+.scale-btn {
+    background-color: #9C27B0; /* Purple color for scale button */
+}
+
+.scale-btn:hover {
+    background-color: #7B1FA2;
+}
+
+.scale-btn.active {
+    background-color: #FF5722; /* Orange when active */
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
 }
 
 .file-name {
