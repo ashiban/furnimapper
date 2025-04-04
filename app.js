@@ -1299,7 +1299,7 @@ function createRectangle() {
     const centerX = width / 2 - widthPixels / 2;
     const centerY = height / 2 - heightPixels / 2;
 
-    // Create a group to hold both the rectangle and text
+    // Create a group to hold the rectangle, text, and orientation indicator
     // This allows us to drag them together as a single unit
     const group = new Konva.Group({
         x: centerX + widthPixels / 2, // Position at the center of the rectangle
@@ -1335,9 +1335,29 @@ function createRectangle() {
     text.offsetX(text.width() / 2);
     text.offsetY(text.height() / 2);
 
-    // Add the rectangle and text to the group
+    // Create a chevron down arrow at the bottom center of the rectangle
+    // to indicate orientation
+    const chevronSize = Math.min(widthPixels, heightPixels) * 0.15; // Size proportional to object
+    const chevronWidth = chevronSize;
+    const chevronHeight = chevronSize * 0.6;
+
+    // Create the chevron using a line with specific points
+    const chevron = new Konva.Line({
+        points: [
+            -chevronWidth/2, heightPixels/2 - chevronHeight * 1.5, // Left point
+            0, heightPixels/2 - chevronHeight * 0.5,              // Bottom point
+            chevronWidth/2, heightPixels/2 - chevronHeight * 1.5  // Right point
+        ],
+        stroke: '#000',
+        strokeWidth: 2,
+        closed: false,
+        fill: null,
+    });
+
+    // Add the rectangle, text, and chevron to the group
     group.add(rect);
     group.add(text);
+    group.add(chevron);
 
     // Add the group to the layer
     layer.add(group);
@@ -1354,7 +1374,8 @@ function createRectangle() {
         rotation_degrees: 0, // Initialize rotation to 0 degrees
         group: group,
         shape: rect,
-        text: text
+        text: text,
+        chevron: chevron // Store reference to the chevron
     });
 
     // Add drag event handlers to update stored position
@@ -1545,9 +1566,29 @@ function createObjectFromData(objectData) {
         text.offsetX(text.width() / 2);
         text.offsetY(text.height() / 2);
 
-        // Add the rectangle and text to the group
+        // Create a chevron down arrow at the bottom center of the rectangle
+        // to indicate orientation
+        const chevronSize = Math.min(widthPixels, heightPixels) * 0.15; // Size proportional to object
+        const chevronWidth = chevronSize;
+        const chevronHeight = chevronSize * 0.6;
+
+        // Create the chevron using a line with specific points
+        const chevron = new Konva.Line({
+            points: [
+                -chevronWidth/2, heightPixels/2 - chevronHeight * 1.5, // Left point
+                0, heightPixels/2 - chevronHeight * 0.5,              // Bottom point
+                chevronWidth/2, heightPixels/2 - chevronHeight * 1.5  // Right point
+            ],
+            stroke: '#000',
+            strokeWidth: 2,
+            closed: false,
+            fill: null,
+        });
+
+        // Add the rectangle, text, and chevron to the group
         group.add(rect);
         group.add(text);
+        group.add(chevron);
 
         // Add the group to the layer
         layer.add(group);
@@ -1564,12 +1605,21 @@ function createObjectFromData(objectData) {
             rotation_degrees: objectData.rotation_degrees || 0, // Use imported rotation or default to 0
             group: group,
             shape: rect,
-            text: text
+            text: text,
+            chevron: chevron // Store reference to the chevron
         });
 
         // Apply rotation if it exists in the imported data
         const rotation = objectData.rotation_degrees || 0;
         group.rotation(rotation);
+
+        // Keep the text orientation fixed by counter-rotating it
+        // This cancels out the group rotation for the text only
+        text.rotation(-rotation);
+
+        // The chevron should rotate with the object to show orientation
+        // so we don't counter-rotate it
+
         console.log(`Applied rotation of ${rotation} degrees to object: ${objectData.label}`);
 
         // Add drag event handlers to update stored position
@@ -1750,6 +1800,13 @@ function rotateSelectedObject() {
 
     // Apply the rotation to the group (which contains both the rectangle and text)
     selectedObject.group.rotation(newRotation);
+
+    // Keep the text orientation fixed by counter-rotating it
+    // This cancels out the group rotation for the text only
+    selectedObject.text.rotation(-newRotation);
+
+    // The chevron should rotate with the object to show orientation
+    // so we don't counter-rotate it
 
     // Redraw the layer
     layer.batchDraw();

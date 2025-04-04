@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Rotation Test</title>
+    <script src="https://unpkg.com/konva@8.4.3/konva.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            width: 100%;
+            text-align: center;
+        }
+        #canvas-container {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin: 0 auto;
+            background-color: white;
+        }
+        button {
+            margin: 10px;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Text Rotation Test</h1>
+        <div id="canvas-container"></div>
+        <button id="rotate-btn">Rotate Object</button>
+    </div>
+
+    <script>
+        // Initialize Konva Stage and Layer
+        const stage = new Konva.Stage({
+            container: 'canvas-container',
+            width: 800,
+            height: 600,
+        });
+
+        const layer = new Konva.Layer();
+        stage.add(layer);
+
+        // Create a group to hold the rectangle and text
+        const group = new Konva.Group({
+            x: 400,
+            y: 300,
+            draggable: true,
+        });
+
+        // Create a rectangle
+        const rect = new Konva.Rect({
+            x: -75,
+            y: -50,
+            width: 150,
+            height: 100,
+            fill: 'lightblue',
+            stroke: 'black',
+            strokeWidth: 2,
+        });
+
+        // Create text
+        const text = new Konva.Text({
+            x: 0,
+            y: 0,
+            text: 'TV (55" x 32")',
+            fontSize: 16,
+            fontFamily: 'Arial',
+            fill: 'black',
+            align: 'center',
+        });
+
+        // Center the text
+        text.offsetX(text.width() / 2);
+        text.offsetY(text.height() / 2);
+
+        // Add rectangle and text to the group
+        group.add(rect);
+        group.add(text);
+
+        // Add the group to the layer
+        layer.add(group);
+        layer.draw();
+
+        // Track rotation
+        let rotation = 0;
+        const rotationIncrement = 30;
+
+        // Rotate button handler
+        document.getElementById('rotate-btn').addEventListener('click', () => {
+            // Calculate new rotation
+            rotation = (rotation + rotationIncrement) % 360;
+            
+            // Apply rotation to the group
+            group.rotation(rotation);
+            
+            // Counter-rotate the text to keep it upright
+            text.rotation(-rotation);
+            
+            // Redraw the layer
+            layer.draw();
+        });
+    </script>
+</body>
+</html>
