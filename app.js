@@ -1565,6 +1565,21 @@ function rotateSelectedObject() {
     console.log('Object rotated to:', newRotation, 'degrees');
 }
 
+// Add keyboard event listener for rotating objects with 'r' key
+document.addEventListener('keydown', (e) => {
+    // Check if the pressed key is 'r' or 'R'
+    if (e.key === 'r' || e.key === 'R') {
+        // Check if an object is selected
+        if (selectedObjectIndex !== -1) {
+            // Call the rotate function
+            rotateSelectedObject();
+
+            // Prevent default behavior (like scrolling)
+            e.preventDefault();
+        }
+    }
+});
+
 // Initial setup
 updateExportButtonState();
 
