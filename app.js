@@ -1413,8 +1413,9 @@ function selectObject(index) {
     // Bring the selected object to the front
     selectedObject.group.moveToTop();
 
-    // Enable the rotate button when an object is selected
+    // Enable the rotate and delete buttons when an object is selected
     document.getElementById('rotate-object-btn').disabled = false;
+    document.getElementById('delete-object-btn').disabled = false;
 
     // Redraw the layer
     layer.batchDraw();
@@ -1434,8 +1435,9 @@ function deselectObject() {
     // Reset the selected object index
     selectedObjectIndex = -1;
 
-    // Disable the rotate button when no object is selected
+    // Disable the rotate and delete buttons when no object is selected
     document.getElementById('rotate-object-btn').disabled = true;
+    document.getElementById('delete-object-btn').disabled = true;
 
     // Redraw the layer
     layer.batchDraw();
@@ -1597,8 +1599,9 @@ function clearAllObjects() {
     // Reset the selected object index
     selectedObjectIndex = -1;
 
-    // Disable the rotate button
+    // Disable the rotate and delete buttons
     document.getElementById('rotate-object-btn').disabled = true;
+    document.getElementById('delete-object-btn').disabled = true;
 
     // Redraw the layer
     layer.batchDraw();
@@ -1609,6 +1612,71 @@ function clearAllObjects() {
 // Rotate Object button handler
 const rotateObjectBtn = document.getElementById('rotate-object-btn');
 rotateObjectBtn.addEventListener('click', rotateSelectedObject);
+
+// Delete Object button handler
+const deleteObjectBtn = document.getElementById('delete-object-btn');
+deleteObjectBtn.addEventListener('click', deleteSelectedObject);
+
+// Function to delete the selected object
+function deleteSelectedObject() {
+    // Check if an object is selected
+    if (selectedObjectIndex === -1) return;
+
+    // Get the selected object
+    const selectedObject = objects[selectedObjectIndex];
+
+    // Remove the group from the layer (this removes both the rectangle and text)
+    selectedObject.group.destroy();
+
+    // Remove the object from the objects array
+    objects.splice(selectedObjectIndex, 1);
+
+    // Reset the selected object index
+    selectedObjectIndex = -1;
+
+    // Disable the rotate and delete buttons
+    document.getElementById('rotate-object-btn').disabled = true;
+    document.getElementById('delete-object-btn').disabled = true;
+
+    // Update event handlers for remaining objects
+    updateObjectEventHandlers();
+
+    // Update the export button state
+    updateExportButtonState();
+
+    // Redraw the layer
+    layer.batchDraw();
+
+    console.log('Object deleted');
+}
+
+// Function to update object event handlers after deletion
+function updateObjectEventHandlers() {
+    // Remove all existing event handlers and add updated ones with correct indices
+    objects.forEach((obj, index) => {
+        obj.group.off('click');
+        obj.group.off('dragend');
+
+        // Add updated click handler for selection
+        obj.group.on('click', (e) => {
+            e.cancelBubble = true;
+            selectObject(index);
+            console.log(`Object ${obj.label} selected`);
+        });
+
+        // Add updated drag handler
+        obj.group.on('dragend', () => {
+            // Calculate the top-left position
+            const widthPixels = obj.width_feet * scalePixelsPerFoot;
+            const heightPixels = obj.height_feet * scalePixelsPerFoot;
+
+            // Update the stored position
+            obj.x_pixels = obj.group.x() - widthPixels / 2;
+            obj.y_pixels = obj.group.y() - heightPixels / 2;
+            console.log(`Object ${obj.label} moved to position: (${obj.x_pixels.toFixed(2)}, ${obj.y_pixels.toFixed(2)})`);
+        });
+    });
+}
 
 // Function to rotate the selected object
 function rotateSelectedObject() {
@@ -1657,6 +1725,7 @@ document.getElementById('commit-btn').textContent = 'Start Drawing';
 document.getElementById('commit-btn').disabled = false;
 document.getElementById('delete-polygon-btn').disabled = true;
 document.getElementById('rotate-object-btn').disabled = true; // Initially disabled until an object is selected
+document.getElementById('delete-object-btn').disabled = true; // Initially disabled until an object is selected
 
 // Initial draw of all layers
 backgroundLayer.batchDraw();
