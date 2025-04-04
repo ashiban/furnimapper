@@ -435,32 +435,32 @@ imageUploadInput.addEventListener('change', (e) => {
 
 // Export Floor Grid functionality
 function exportFloorGrid() {
-    // Check if we have any polygons to export
-    if (polygons.length === 0) {
-        alert('No polygons to export. Create at least one polygon first.');
+    // Check if we have any polygons or objects to export
+    if (polygons.length === 0 && objects.length === 0) {
+        alert('No polygons or objects to export. Create at least one polygon or object first.');
         return;
     }
 
     // Create a data structure for export
-    // If scale is defined, include it in the export data
-    let exportData;
-
-    if (scalePixelsPerInch !== null) {
-        // Include scale in the export data
-        exportData = {
-            scale_pixels_per_inch: scalePixelsPerInch,
-            polygons: polygons.map(polygon => ({
-                label: polygon.label,
-                vertices: polygon.vertices
-            }))
-        };
-    } else {
-        // Maintain backward compatibility with old format if no scale is defined
-        exportData = polygons.map(polygon => ({
+    let exportData = {
+        scale_pixels_per_inch: scalePixelsPerInch,
+        polygons: polygons.map(polygon => ({
             label: polygon.label,
             vertices: polygon.vertices
-        }));
-    }
+        })),
+        objects: objects.map(obj => ({
+            type: obj.type,
+            label: obj.label,
+            width_inches: obj.width_inches,
+            height_inches: obj.height_inches,
+            x_pixels: obj.x_pixels,
+            y_pixels: obj.y_pixels,
+            rotation_degrees: obj.rotation_degrees || 0 // Include rotation in export
+        }))
+    };
+
+    console.log('Exporting data:', exportData);
+    console.log(`Exporting ${polygons.length} polygons and ${objects.length} objects`);
 
     // Convert to JSON string with pretty formatting
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -491,7 +491,8 @@ exportBtn.addEventListener('click', exportFloorGrid);
 
 // Function to update export button state
 function updateExportButtonState() {
-    exportBtn.disabled = polygons.length === 0;
+    // Enable export button if there are any polygons or objects
+    exportBtn.disabled = (polygons.length === 0 && objects.length === 0);
 }
 
 // Update the polygon counter display and export button state
@@ -514,15 +515,33 @@ function importFloorGrid(file) {
 
     reader.onload = (event) => {
         try {
+            console.log('Starting import process...');
             // Parse the JSON data
             const importedData = JSON.parse(event.target.result);
+            console.log('Parsed JSON data:', importedData);
 
-            // Clear existing polygons
+            // Clear existing polygons and objects
+            console.log('Clearing existing polygons and objects...');
             clearAllPolygons();
+            clearAllObjects();
+            console.log('Cleared existing polygons and objects');
+
+            // Ensure objects array is initialized
+            if (!objects || !Array.isArray(objects)) {
+                console.log('Objects array was not properly initialized, creating new array');
+                objects = [];
+            }
 
             // Check if the imported data is in the new format (with scale)
-            if (importedData && typeof importedData === 'object' && !Array.isArray(importedData) && importedData.polygons) {
+            if (importedData && typeof importedData === 'object' && !Array.isArray(importedData)) {
                 // New format with scale
+                console.log('Detected new format JSON with scale');
+
+                // Ensure objects array exists
+                if (!importedData.objects) {
+                    console.log('No objects array found in imported data, adding empty array');
+                    importedData.objects = [];
+                }
 
                 // Extract and set the scale if available
                 if (typeof importedData.scale_pixels_per_inch === 'number') {
@@ -548,16 +567,54 @@ function importFloorGrid(file) {
                     createPolygonFromData(item);
                 });
 
+                // Process objects if available
+                if (importedData.objects && Array.isArray(importedData.objects)) {
+                    console.log(`Processing ${importedData.objects.length} objects from imported data`);
+
+                    // Track successfully created objects
+                    let successCount = 0;
+
+                    importedData.objects.forEach((item, index) => {
+                        console.log(`Processing object ${index + 1}:`, item);
+                        // Validate required fields
+                        if (!item.type || !item.label || typeof item.width_inches !== 'number' ||
+                            typeof item.height_inches !== 'number' || typeof item.x_pixels !== 'number' ||
+                            typeof item.y_pixels !== 'number') {
+                            console.error('Invalid object data:', item);
+                            throw new Error('Invalid object data: Missing required properties');
+                        }
+
+                        // Create a new object from the imported data
+                        const success = createObjectFromData(item);
+                        if (success) {
+                            successCount++;
+                            console.log(`Successfully created object ${index + 1}: ${item.label}`);
+                        } else {
+                            console.warn(`Failed to create object ${index + 1}: ${item.label}`);
+                        }
+                    });
+
+                    console.log(`Finished processing ${importedData.objects.length} objects. Successfully created ${successCount} objects.`);
+
+                    // If no objects were created successfully but there were objects in the data, show a warning
+                    if (successCount === 0 && importedData.objects.length > 0) {
+                        console.warn('Warning: Failed to create any objects from the imported data');
+                    }
+                } else {
+                    console.log('No objects array found in imported data or it is empty');
+                }
+
                 // Update the polygon counter
                 updatePolygonCounter();
 
-                // Show success message
-                alert(`Successfully imported ${importedData.polygons.length} polygons with scale information`);
-
+                // Show success message with detailed counts
+                const polygonCount = importedData.polygons ? importedData.polygons.length : 0;
+                const objectCount = importedData.objects ? importedData.objects.length : 0;
+                console.log(`Imported ${polygonCount} polygons and ${objectCount} objects`);
+                alert(`Successfully imported ${polygonCount} polygons and ${objectCount} objects`);
             } else if (Array.isArray(importedData)) {
-                // Old format (array of polygons without scale)
-
-                // Process each polygon in the imported data
+                // Old format (array of polygons without scale or objects)
+                console.log('Detected old format JSON (array of polygons without objects)');
                 importedData.forEach(item => {
                     // Validate required fields
                     if (!item.label || !Array.isArray(item.vertices)) {
@@ -572,12 +629,11 @@ function importFloorGrid(file) {
                 updatePolygonCounter();
 
                 // Show success message
+                console.log(`Successfully imported ${importedData.length} polygons (old format)`);
                 alert(`Successfully imported ${importedData.length} polygons`);
-
             } else {
                 throw new Error('Invalid JSON format: Expected an array or an object with polygons property');
             }
-
         } catch (error) {
             console.error('Error importing floor grid:', error);
             alert(`Error importing floor grid: ${error.message}`);
@@ -1344,163 +1400,29 @@ function deselectObject() {
 
 // Note: The stage click handler has been modified above to prioritize rectangle selection
 
-// Update the JSON export function to include objects
-const originalExportFloorGrid = exportFloorGrid;
-exportFloorGrid = function() {
-    // Check if we have any polygons to export
-    if (polygons.length === 0 && objects.length === 0) {
-        alert('No polygons or objects to export. Create at least one polygon or object first.');
-        return;
-    }
-
-    // Create a data structure for export
-    let exportData = {
-        scale_pixels_per_inch: scalePixelsPerInch,
-        polygons: polygons.map(polygon => ({
-            label: polygon.label,
-            vertices: polygon.vertices
-        })),
-        objects: objects.map(obj => ({
-            type: obj.type,
-            label: obj.label,
-            width_inches: obj.width_inches,
-            height_inches: obj.height_inches,
-            x_pixels: obj.x_pixels,
-            y_pixels: obj.y_pixels,
-            rotation_degrees: obj.rotation_degrees || 0 // Include rotation in export
-        }))
-    };
-
-    // Convert to JSON string with pretty formatting
-    const jsonString = JSON.stringify(exportData, null, 2);
-
-    // Create a blob with the JSON data
-    const blob = new Blob([jsonString], { type: 'application/json' });
-
-    // Create a URL for the blob
-    const url = URL.createObjectURL(blob);
-
-    // Create a temporary anchor element
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'floor_grid.json';
-
-    // Append to the document, click it, and remove it
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    // Clean up by revoking the URL
-    URL.revokeObjectURL(url);
-};
-
-// Update the import function to handle objects
-const originalImportFloorGrid = importFloorGrid;
-importFloorGrid = function(file) {
-    if (!file) return;
-
-    // Only process JSON files
-    if (file.type !== 'application/json') {
-        alert('Please select a JSON file');
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-        try {
-            // Parse the JSON data
-            const importedData = JSON.parse(event.target.result);
-
-            // Clear existing polygons and objects
-            clearAllPolygons();
-            clearAllObjects();
-
-            // Check if the imported data is in the new format (with scale)
-            if (importedData && typeof importedData === 'object' && !Array.isArray(importedData)) {
-                // Extract and set the scale if available
-                if (typeof importedData.scale_pixels_per_inch === 'number') {
-                    scalePixelsPerInch = importedData.scale_pixels_per_inch;
-                    // Update the scale button text
-                    updateScaleButtonText();
-                    console.log(`Imported scale: ${scalePixelsPerInch.toFixed(2)} pixels per inch`);
-                }
-
-                // Process polygons if available
-                if (Array.isArray(importedData.polygons)) {
-                    importedData.polygons.forEach(item => {
-                        // Validate required fields
-                        if (!item.label || !Array.isArray(item.vertices)) {
-                            throw new Error('Invalid polygon data: Missing label or vertices');
-                        }
-
-                        // Create a new polygon from the imported data
-                        createPolygonFromData(item);
-                    });
-                }
-
-                // Process objects if available
-                if (Array.isArray(importedData.objects)) {
-                    importedData.objects.forEach(item => {
-                        // Validate required fields
-                        if (!item.type || !item.label || typeof item.width_inches !== 'number' ||
-                            typeof item.height_inches !== 'number' || typeof item.x_pixels !== 'number' ||
-                            typeof item.y_pixels !== 'number') {
-                            throw new Error('Invalid object data: Missing required properties');
-                        }
-
-                        // Create a new object from the imported data
-                        createObjectFromData(item);
-                    });
-                }
-
-                // Update the polygon counter
-                updatePolygonCounter();
-
-                // Show success message
-                alert(`Successfully imported ${importedData.polygons ? importedData.polygons.length : 0} polygons and ${importedData.objects ? importedData.objects.length : 0} objects`);
-            } else if (Array.isArray(importedData)) {
-                // Old format (array of polygons without scale or objects)
-                importedData.forEach(item => {
-                    // Validate required fields
-                    if (!item.label || !Array.isArray(item.vertices)) {
-                        throw new Error('Invalid polygon data: Missing label or vertices');
-                    }
-
-                    // Create a new polygon from the imported data
-                    createPolygonFromData(item);
-                });
-
-                // Update the polygon counter
-                updatePolygonCounter();
-
-                // Show success message
-                alert(`Successfully imported ${importedData.length} polygons`);
-            } else {
-                throw new Error('Invalid JSON format: Expected an array or an object with polygons property');
-            }
-        } catch (error) {
-            console.error('Error importing floor grid:', error);
-            alert(`Error importing floor grid: ${error.message}`);
-        }
-    };
-
-    reader.readAsText(file);
-};
+// The export and import functions have been updated to properly handle objects
 
 // Function to create an object from imported data
 function createObjectFromData(objectData) {
     if (objectData.type === 'rectangle') {
+        console.log('Creating rectangle object:', objectData);
+
         // Calculate pixel dimensions using the scale
         const widthPixels = objectData.width_inches * scalePixelsPerInch;
         const heightPixels = objectData.height_inches * scalePixelsPerInch;
 
+        // Calculate the center position for the group
+        const centerX = objectData.x_pixels + widthPixels / 2;
+        const centerY = objectData.y_pixels + heightPixels / 2;
+
         // Create a group to hold both the rectangle and text
         const group = new Konva.Group({
-            x: objectData.x_pixels + widthPixels / 2, // Position at the center of the rectangle
-            y: objectData.y_pixels + heightPixels / 2, // Position at the center of the rectangle
+            x: centerX, // Position at the center of the rectangle
+            y: centerY, // Position at the center of the rectangle
             draggable: true,
         });
+
+        console.log(`Creating object at position: (${centerX}, ${centerY}) with dimensions: ${widthPixels}x${heightPixels} pixels`);
 
         // Create a rectangle shape (relative to the group)
         const rect = new Konva.Rect({
@@ -1552,9 +1474,9 @@ function createObjectFromData(objectData) {
         });
 
         // Apply rotation if it exists in the imported data
-        if (objectData.rotation_degrees) {
-            group.rotation(objectData.rotation_degrees);
-        }
+        const rotation = objectData.rotation_degrees || 0;
+        group.rotation(rotation);
+        console.log(`Applied rotation of ${rotation} degrees to object: ${objectData.label}`);
 
         // Add drag event handlers to update stored position
         group.on('dragend', () => {
@@ -1562,6 +1484,7 @@ function createObjectFromData(objectData) {
             // Subtract half width/height to store the top-left position
             objects[objectIndex].x_pixels = group.x() - widthPixels / 2;
             objects[objectIndex].y_pixels = group.y() - heightPixels / 2;
+            console.log(`Object ${objectData.label} moved to position: (${objects[objectIndex].x_pixels}, ${objects[objectIndex].y_pixels})`);
         });
 
         // Add click handler for selection
@@ -1571,15 +1494,32 @@ function createObjectFromData(objectData) {
 
             // Select this object
             selectObject(objectIndex);
+            console.log(`Object ${objectData.label} selected`);
         });
+
+        // Bring the group to the front to ensure it's visible
+        group.moveToTop();
+
+        // Redraw the layer to ensure the object is visible
+        layer.batchDraw();
+
+        console.log(`Successfully created object: ${objectData.label}`);
+        return true; // Return true to indicate success
+    } else {
+        console.warn(`Unknown object type: ${objectData.type}`);
+        return false; // Return false to indicate failure
     }
 }
 
 // Function to clear all objects
 function clearAllObjects() {
+    console.log(`Clearing ${objects.length} objects`);
+
     // Remove all object groups from the layer
     objects.forEach(obj => {
-        obj.group.destroy(); // This will also destroy all children (rect and text)
+        if (obj && obj.group) {
+            obj.group.destroy(); // This will also destroy all children (rect and text)
+        }
     });
 
     // Clear the objects array
@@ -1588,8 +1528,13 @@ function clearAllObjects() {
     // Reset the selected object index
     selectedObjectIndex = -1;
 
+    // Disable the rotate button
+    document.getElementById('rotate-object-btn').disabled = true;
+
     // Redraw the layer
     layer.batchDraw();
+
+    console.log('All objects cleared');
 }
 
 // Rotate Object button handler
