@@ -1328,6 +1328,7 @@ function createRectangle() {
         fill: '#000',
         align: 'center',
         verticalAlign: 'middle',
+        visible: false, // Hide text by default - only show on hover/select
     });
 
     // Center the text
@@ -1375,6 +1376,21 @@ function createRectangle() {
         console.log(`Object ${label} selected, draggable: ${group.draggable()}`);
     });
 
+    // Add hover event handlers to show/hide full text
+    group.on('mouseenter', () => {
+        // Show text on hover
+        text.visible(true);
+        layer.batchDraw();
+    });
+
+    group.on('mouseleave', () => {
+        // Hide text when not hovering, unless selected
+        if (selectedObjectIndex !== objectIndex) {
+            text.visible(false);
+            layer.batchDraw();
+        }
+    });
+
     // Hide the modal
     hideRectangleModal();
 
@@ -1407,6 +1423,9 @@ function selectObject(index) {
     selectedObject.shape.stroke('#ff0000');
     selectedObject.shape.strokeWidth(3);
 
+    // Show text when selected
+    selectedObject.text.visible(true);
+
     // Ensure the group is draggable
     selectedObject.group.draggable(true);
 
@@ -1431,6 +1450,9 @@ function deselectObject() {
     const selectedObject = objects[selectedObjectIndex];
     selectedObject.shape.stroke('#000');
     selectedObject.shape.strokeWidth(2);
+
+    // Hide text when deselected
+    selectedObject.text.visible(false);
 
     // Reset the selected object index
     selectedObjectIndex = -1;
@@ -1516,6 +1538,7 @@ function createObjectFromData(objectData) {
             fill: '#000',
             align: 'center',
             verticalAlign: 'middle',
+            visible: false, // Hide text by default - only show on hover/select
         });
 
         // Center the text
@@ -1566,6 +1589,21 @@ function createObjectFromData(objectData) {
             // Select this object
             selectObject(objectIndex);
             console.log(`Object ${objectData.label} selected`);
+        });
+
+        // Add hover event handlers to show/hide full text
+        group.on('mouseenter', () => {
+            // Show text on hover
+            text.visible(true);
+            layer.batchDraw();
+        });
+
+        group.on('mouseleave', () => {
+            // Hide text when not hovering, unless selected
+            if (selectedObjectIndex !== objectIndex) {
+                text.visible(false);
+                layer.batchDraw();
+            }
         });
 
         // Bring the group to the front to ensure it's visible
@@ -1656,12 +1694,29 @@ function updateObjectEventHandlers() {
     objects.forEach((obj, index) => {
         obj.group.off('click');
         obj.group.off('dragend');
+        obj.group.off('mouseenter');
+        obj.group.off('mouseleave');
 
         // Add updated click handler for selection
         obj.group.on('click', (e) => {
             e.cancelBubble = true;
             selectObject(index);
             console.log(`Object ${obj.label} selected`);
+        });
+
+        // Add updated hover event handlers
+        obj.group.on('mouseenter', () => {
+            // Show text on hover
+            obj.text.visible(true);
+            layer.batchDraw();
+        });
+
+        obj.group.on('mouseleave', () => {
+            // Hide text when not hovering, unless selected
+            if (selectedObjectIndex !== index) {
+                obj.text.visible(false);
+                layer.batchDraw();
+            }
         });
 
         // Add updated drag handler
