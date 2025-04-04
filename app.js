@@ -40,7 +40,7 @@ let isEditMode = false; // Flag to track if we're in edit mode
 
 // State variables for object selection and rotation
 let selectedObjectIndex = -1; // Index of the currently selected object (-1 means none)
-const rotationIncrement = 15; // Rotation increment in degrees
+const rotationIncrement = 30; // Rotation increment in degrees
 
 // State variables for scale definition
 let isScaleDefinitionMode = false; // Flag to track if we're in scale definition mode
@@ -1205,15 +1205,15 @@ function createRectangle() {
     // Create a group to hold both the rectangle and text
     // This allows us to drag them together as a single unit
     const group = new Konva.Group({
-        x: centerX,
-        y: centerY,
+        x: centerX + widthPixels / 2, // Position at the center of the rectangle
+        y: centerY + heightPixels / 2, // Position at the center of the rectangle
         draggable: true,
     });
 
     // Create a rectangle shape (relative to the group)
     const rect = new Konva.Rect({
-        x: 0,
-        y: 0,
+        x: -widthPixels / 2, // Position relative to group center
+        y: -heightPixels / 2, // Position relative to group center
         width: widthPixels,
         height: heightPixels,
         fill: getRandomColor(0.6), // Different opacity to distinguish from room polygons
@@ -1223,8 +1223,8 @@ function createRectangle() {
 
     // Create a text label (relative to the group)
     const text = new Konva.Text({
-        x: widthPixels / 2,
-        y: heightPixels / 2,
+        x: 0, // Center position (0,0) since the group is now centered
+        y: 0, // Center position (0,0) since the group is now centered
         text: label,
         fontSize: 16,
         fontFamily: 'Arial',
@@ -1262,9 +1262,10 @@ function createRectangle() {
     // Add drag event handlers to update stored position
     group.on('dragend', () => {
         // Update the stored position
-        objects[objectIndex].x_pixels = group.x();
-        objects[objectIndex].y_pixels = group.y();
-        console.log('Group dragged to:', group.x(), group.y());
+        // Subtract half width/height to store the top-left position
+        objects[objectIndex].x_pixels = group.x() - widthPixels / 2;
+        objects[objectIndex].y_pixels = group.y() - heightPixels / 2;
+        console.log('Group dragged to:', objects[objectIndex].x_pixels, objects[objectIndex].y_pixels);
     });
 
     // Add click handler for selection
@@ -1496,15 +1497,15 @@ function createObjectFromData(objectData) {
 
         // Create a group to hold both the rectangle and text
         const group = new Konva.Group({
-            x: objectData.x_pixels,
-            y: objectData.y_pixels,
+            x: objectData.x_pixels + widthPixels / 2, // Position at the center of the rectangle
+            y: objectData.y_pixels + heightPixels / 2, // Position at the center of the rectangle
             draggable: true,
         });
 
         // Create a rectangle shape (relative to the group)
         const rect = new Konva.Rect({
-            x: 0,
-            y: 0,
+            x: -widthPixels / 2, // Position relative to group center
+            y: -heightPixels / 2, // Position relative to group center
             width: widthPixels,
             height: heightPixels,
             fill: getRandomColor(0.6),
@@ -1514,8 +1515,8 @@ function createObjectFromData(objectData) {
 
         // Create a text label (relative to the group)
         const text = new Konva.Text({
-            x: widthPixels / 2,
-            y: heightPixels / 2,
+            x: 0, // Center position (0,0) since the group is now centered
+            y: 0, // Center position (0,0) since the group is now centered
             text: objectData.label,
             fontSize: 16,
             fontFamily: 'Arial',
@@ -1558,8 +1559,9 @@ function createObjectFromData(objectData) {
         // Add drag event handlers to update stored position
         group.on('dragend', () => {
             // Update the stored position
-            objects[objectIndex].x_pixels = group.x();
-            objects[objectIndex].y_pixels = group.y();
+            // Subtract half width/height to store the top-left position
+            objects[objectIndex].x_pixels = group.x() - widthPixels / 2;
+            objects[objectIndex].y_pixels = group.y() - heightPixels / 2;
         });
 
         // Add click handler for selection
