@@ -27,7 +27,8 @@ let currentPolygon = {
     shape: null,
     label: ''
 };
-let isDrawingComplete = false;
+let isDrawingComplete = true; // Initialize as true so we're not in drawing mode by default
+let isDrawingMode = false; // New flag to explicitly track when we're in drawing mode
 
 // State variables for polygon editing
 let selectedPolygonIndex = -1; // Index of the currently selected polygon (-1 means none)
@@ -48,16 +49,29 @@ const polygonLabelInput = document.getElementById('polygon-label');
 const saveLabelBtn = document.getElementById('save-label-btn');
 const polygonCounter = document.getElementById('polygon-counter');
 
+// Context menu elements
+const contextMenu = document.getElementById('context-menu');
+const contextMenuDeleteBtn = document.getElementById('context-menu').querySelector('.context-menu-item');
+let rightClickedPolygonIndex = -1; // Index of the polygon that was right-clicked
+
 // Handle mouse clicks on stage
 stage.on('click', (e) => {
     // Get the clicked target
     const clickedTarget = e.target;
 
+    // Check if we clicked on a polygon
+    const clickedOnPolygon = clickedTarget instanceof Konva.Line && clickedTarget.closed();
+
+    // If we clicked on a polygon, don't proceed with adding points
+    // The polygon's own click handler will handle selection
+    if (clickedOnPolygon) {
+        return;
+    }
+
     // If we're in edit mode, handle deselection
     if (isEditMode) {
-        // Check if we clicked on a vertex handle or a polygon
+        // Check if we clicked on a vertex handle
         const clickedOnHandle = clickedTarget.hasName && clickedTarget.hasName('vertex-handle');
-        const clickedOnPolygon = clickedTarget instanceof Konva.Line && clickedTarget.closed();
 
         // If we clicked outside both handles and polygons, deselect
         if (!clickedOnHandle && !clickedOnPolygon) {
@@ -66,8 +80,8 @@ stage.on('click', (e) => {
         return;
     }
 
-    // If we're in the middle of drawing a polygon
-    if (!isDrawingComplete) {
+    // If we're in drawing mode and not in edit mode
+    if (isDrawingMode) {
         const pos = stage.getPointerPosition();
         const x = pos.x;
         const y = pos.y;
@@ -117,7 +131,9 @@ function updatePolygonPreview() {
 // Complete the polygon
 function completePolygon() {
     isDrawingComplete = true;
-    document.getElementById('commit-btn').disabled = true;
+    isDrawingMode = false;
+    document.getElementById('commit-btn').textContent = 'Start Drawing';
+    document.getElementById('commit-btn').disabled = false;
 
     // Create final polygon shape
     const flatPoints = currentPolygon.points.flatMap(p => [p.x, p.y]);
@@ -172,6 +188,25 @@ function saveLabel() {
         selectPolygon(newPolygonIndex);
     });
 
+    // Add right-click event handler for context menu
+    currentPolygon.shape.on('contextmenu', (e) => {
+        // Prevent default browser context menu
+        e.evt.preventDefault();
+
+        // Prevent the event from bubbling to the stage
+        e.cancelBubble = true;
+
+        // Only show context menu if not in edit mode
+        if (!isEditMode || selectedPolygonIndex !== newPolygonIndex) {
+            // Store the right-clicked polygon index
+            rightClickedPolygonIndex = newPolygonIndex;
+
+            // Show context menu at mouse position
+            const pos = stage.getPointerPosition();
+            showContextMenu(pos.x, pos.y);
+        }
+    });
+
     // Update polygon counter
     updatePolygonCounter();
 
@@ -219,13 +254,17 @@ function addLabelToCanvas(polygon) {
 
 // Reset state for drawing a new polygon
 function resetForNewPolygon() {
-    isDrawingComplete = false;
+    isDrawingComplete = true;
+    isDrawingMode = false;
     currentPolygon = {
         points: [],
         pointMarkers: [],
         shape: null,
         label: ''
     };
+
+    // Disable commit button
+    document.getElementById('commit-btn').disabled = true;
 }
 
 // This function is now defined at the bottom of the file with additional functionality
@@ -240,6 +279,15 @@ function getRandomColor(opacity = 1) {
 
 // Commit button handler
 document.getElementById('commit-btn').addEventListener('click', () => {
+    // If we're not in drawing mode, start drawing mode
+    if (!isDrawingMode) {
+        isDrawingMode = true;
+        isDrawingComplete = false;
+        document.getElementById('commit-btn').textContent = 'Commit Polygon';
+        return;
+    }
+
+    // If we're in drawing mode and have enough points, complete the polygon
     if (currentPolygon.points.length >= 3) {
         completePolygon();
     }
@@ -515,6 +563,25 @@ function createPolygonFromData(polygonData) {
         selectPolygon(newPolygonIndex);
     });
 
+    // Add right-click event handler for context menu
+    polygonShape.on('contextmenu', (e) => {
+        // Prevent default browser context menu
+        e.evt.preventDefault();
+
+        // Prevent the event from bubbling to the stage
+        e.cancelBubble = true;
+
+        // Only show context menu if not in edit mode
+        if (!isEditMode || selectedPolygonIndex !== newPolygonIndex) {
+            // Store the right-clicked polygon index
+            rightClickedPolygonIndex = newPolygonIndex;
+
+            // Show context menu at mouse position
+            const pos = stage.getPointerPosition();
+            showContextMenu(pos.x, pos.y);
+        }
+    });
+
     // Redraw the layer
     layer.batchDraw();
 }
@@ -558,6 +625,9 @@ function selectPolygon(index) {
     // Create vertex handles
     createVertexHandles();
 
+    // Enable the delete button
+    document.getElementById('delete-polygon-btn').disabled = false;
+
     layer.batchDraw();
 }
 
@@ -580,6 +650,9 @@ function deselectPolygon() {
     // Reset state
     selectedPolygonIndex = -1;
     isEditMode = false;
+
+    // Disable the delete button
+    document.getElementById('delete-polygon-btn').disabled = true;
 
     layer.batchDraw();
 }
@@ -673,8 +746,142 @@ function updateLabelPosition(polygonIndex) {
     }
 }
 
+// Context Menu Functionality
+
+// Function to show context menu at mouse position
+function showContextMenu(x, y) {
+    // Position the context menu
+    contextMenu.style.display = 'block';
+    contextMenu.style.left = `${x}px`;
+    contextMenu.style.top = `${y}px`;
+}
+
+// Function to hide context menu
+function hideContextMenu() {
+    contextMenu.style.display = 'none';
+    rightClickedPolygonIndex = -1;
+}
+
+// Function to delete a polygon
+function deletePolygon(index) {
+    // Check if the index is valid
+    if (index < 0 || index >= polygons.length) return;
+
+    // Get the polygon to delete
+    const polygon = polygons[index];
+
+    // Remove the shape from the canvas
+    polygon.shape.destroy();
+
+    // Find and remove the label
+    const labelTexts = layer.find('Text');
+    for (const text of labelTexts) {
+        if (text.text() === polygon.label) {
+            text.destroy();
+            break;
+        }
+    }
+
+    // Remove the polygon from the array
+    polygons.splice(index, 1);
+
+    // Update indices for event handlers on remaining polygons
+    updatePolygonEventHandlers();
+
+    // Update the polygon counter
+    updatePolygonCounter();
+
+    // Redraw the layer
+    layer.batchDraw();
+
+    // Hide the context menu
+    hideContextMenu();
+}
+
+// Function to update polygon event handlers after deletion
+function updatePolygonEventHandlers() {
+    // Remove all existing event handlers
+    polygons.forEach((polygon, index) => {
+        polygon.shape.off('click');
+        polygon.shape.off('contextmenu');
+
+        // Add updated event handlers with correct indices
+        polygon.shape.on('click', (e) => {
+            e.cancelBubble = true;
+            selectPolygon(index);
+        });
+
+        polygon.shape.on('contextmenu', (e) => {
+            e.evt.preventDefault();
+            e.cancelBubble = true;
+
+            if (!isEditMode || selectedPolygonIndex !== index) {
+                rightClickedPolygonIndex = index;
+                const pos = stage.getPointerPosition();
+                showContextMenu(pos.x, pos.y);
+            }
+        });
+    });
+}
+
+// Add click event handler for context menu delete button
+contextMenuDeleteBtn.addEventListener('click', () => {
+    if (rightClickedPolygonIndex !== -1) {
+        // If the right-clicked polygon is the selected one, clear vertex handles
+        if (rightClickedPolygonIndex === selectedPolygonIndex) {
+            clearVertexHandles();
+            selectedPolygonIndex = -1;
+            isEditMode = false;
+            document.getElementById('delete-polygon-btn').disabled = true;
+        }
+
+        deletePolygon(rightClickedPolygonIndex);
+    }
+});
+
+// Add click event handler for the dedicated delete button
+document.getElementById('delete-polygon-btn').addEventListener('click', () => {
+    if (selectedPolygonIndex !== -1) {
+        // Clear vertex handles before deleting the polygon
+        clearVertexHandles();
+
+        deletePolygon(selectedPolygonIndex);
+
+        // Reset the selected polygon index and disable the delete button
+        selectedPolygonIndex = -1;
+        isEditMode = false;
+        document.getElementById('delete-polygon-btn').disabled = true;
+    }
+});
+
+// Hide context menu when clicking elsewhere
+document.addEventListener('click', (e) => {
+    // Check if the click is outside the context menu
+    if (!contextMenu.contains(e.target)) {
+        hideContextMenu();
+    }
+});
+
+// Add stage event handler to hide context menu on stage click
+stage.on('click', () => {
+    hideContextMenu();
+});
+
+// Add stage event handler to prevent default context menu on stage
+stage.on('contextmenu', (e) => {
+    // Only prevent default if we're not on a polygon
+    if (!(e.target instanceof Konva.Line && e.target.closed())) {
+        e.evt.preventDefault();
+    }
+});
+
 // Initial setup
 updateExportButtonState();
+
+// Set initial button states
+document.getElementById('commit-btn').textContent = 'Start Drawing';
+document.getElementById('commit-btn').disabled = false;
+document.getElementById('delete-polygon-btn').disabled = true;
 
 // Initial draw of all layers
 backgroundLayer.batchDraw();
