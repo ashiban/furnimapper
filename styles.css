@@ -32,13 +32,29 @@ h3 {
     color: #2c3e50;
 }
 
-.instructions {
+.instructions-container {
     margin-bottom: 20px;
-    padding: 10px;
-    background-color: #f8f9fa;
+}
+
+.instructions-container .btn {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    text-align: left;
+}
+
+.instructions-container .btn:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.instructions-container .card {
     border-left: 4px solid #6c757d;
-    border-radius: 4px;
-    /* Make instructions visible by default */
+}
+
+.instructions-container .card-body {
+    background-color: #f8f9fa;
+    padding: 15px;
 }
 
 .canvas-wrapper {

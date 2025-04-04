@@ -4,24 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Floor Plan Polygon Drawing Tool</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="styles.css">
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Include Konva.js library -->
     <script src="https://unpkg.com/konva@8.4.3/konva.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Floor Plan Polygon Drawing Tool</h1>
-        <div class="instructions">
-            <p>Click on the grid to place points and create a polygon. Click near the first point to close the shape.</p>
-            <p>After committing a polygon, you'll be prompted to add a label. You can then start drawing another polygon.</p>
-            <p>You can upload a floor plan image as a background to trace over.</p>
-            <p>To edit a polygon, click on it to select it. Red handles will appear at each vertex. Drag these handles to reshape the polygon. Click anywhere outside the polygon to commit your changes.</p>
-            <p>When a polygon is selected, you can click the "Delete Polygon" button to remove it.</p>
-            <p>Use the <strong>Define Scale</strong> button to set the real-world scale of your floor plan. Draw a horizontal or vertical line and specify its length in feet.</p>
-            <p>Use the <strong>Add Rectangle</strong> button to add furniture or other objects to your floor plan. You'll need to define the scale first, then specify the width and height in feet.</p>
-            <p>Use the <strong>Rotate Object</strong> button to rotate the currently selected object in 15-degree increments.</p>
-            <p>Use the <strong>Delete Object</strong> button to remove the currently selected object from the floor plan.</p>
-            <p>Use the <strong>Export Floor Grid</strong> button to save your work as a JSON file, and <strong>Import Floor Grid</strong> to load a previously saved floor plan.</p>
+        <div class="instructions-container mb-4">
+            <p>
+                <button class="btn btn-secondary w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse" aria-expanded="false" aria-controls="instructionsCollapse">
+                    <span>Instructions</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+            </p>
+            <div class="collapse" id="instructionsCollapse">
+                <div class="card card-body">
+                    <p>Click on the grid to place points and create a polygon. Click near the first point to close the shape.</p>
+                    <p>After committing a polygon, you'll be prompted to add a label. You can then start drawing another polygon.</p>
+                    <p>You can upload a floor plan image as a background to trace over.</p>
+                    <p>To edit a polygon, click on it to select it. Red handles will appear at each vertex. Drag these handles to reshape the polygon. Click anywhere outside the polygon to commit your changes.</p>
+                    <p>When a polygon is selected, you can click the "Delete Polygon" button to remove it.</p>
+                    <p>Use the <strong>Define Scale</strong> button to set the real-world scale of your floor plan. Draw a horizontal or vertical line and specify its length in feet.</p>
+                    <p>Use the <strong>Add Rectangle</strong> button to add furniture or other objects to your floor plan. You'll need to define the scale first, then specify the width and height in feet.</p>
+                    <p>Use the <strong>Rotate Object</strong> button to rotate the currently selected object in 15-degree increments.</p>
+                    <p>Use the <strong>Delete Object</strong> button to remove the currently selected object from the floor plan.</p>
+                    <p>Use the <strong>Export Floor Grid</strong> button to save your work as a JSON file, and <strong>Import Floor Grid</strong> to load a previously saved floor plan.</p>
+                </div>
+            </div>
         </div>
         <div class="canvas-wrapper">
             <div id="canvas-container"></div>

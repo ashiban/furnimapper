@@ -1785,3 +1785,5 @@ document.getElementById('delete-object-btn').disabled = true; // Initially disab
 // Initial draw of all layers
 backgroundLayer.batchDraw();
 layer.batchDraw();
+
+// Bootstrap handles the instructions toggle functionality
