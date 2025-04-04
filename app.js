@@ -38,6 +38,10 @@ let selectedPolygonIndex = -1; // Index of the currently selected polygon (-1 me
 let vertexHandles = []; // Array to store vertex handle objects
 let isEditMode = false; // Flag to track if we're in edit mode
 
+// State variables for object selection and rotation
+let selectedObjectIndex = -1; // Index of the currently selected object (-1 means none)
+const rotationIncrement = 15; // Rotation increment in degrees
+
 // State variables for scale definition
 let isScaleDefinitionMode = false; // Flag to track if we're in scale definition mode
 let scaleStartPoint = null; // Starting point of the scale line
@@ -77,7 +81,7 @@ const addRectangleConfirmBtn = document.getElementById('add-rectangle-confirm-bt
 const cancelRectangleBtn = document.getElementById('cancel-rectangle-btn');
 
 // State variables for rectangle selection
-let selectedObjectIndex = -1; // Index of the currently selected object (-1 means none)
+// selectedObjectIndex is already declared at line 42
 
 // Context menu elements
 const contextMenu = document.getElementById('context-menu');
@@ -1249,6 +1253,7 @@ function createRectangle() {
         height_inches: heightInches,
         x_pixels: centerX,
         y_pixels: centerY,
+        rotation_degrees: 0, // Initialize rotation to 0 degrees
         group: group,
         shape: rect,
         text: text
@@ -1308,6 +1313,9 @@ function selectObject(index) {
     // Bring the selected object to the front
     selectedObject.group.moveToTop();
 
+    // Enable the rotate button when an object is selected
+    document.getElementById('rotate-object-btn').disabled = false;
+
     // Redraw the layer
     layer.batchDraw();
 
@@ -1325,6 +1333,9 @@ function deselectObject() {
 
     // Reset the selected object index
     selectedObjectIndex = -1;
+
+    // Disable the rotate button when no object is selected
+    document.getElementById('rotate-object-btn').disabled = true;
 
     // Redraw the layer
     layer.batchDraw();
@@ -1354,7 +1365,8 @@ exportFloorGrid = function() {
             width_inches: obj.width_inches,
             height_inches: obj.height_inches,
             x_pixels: obj.x_pixels,
-            y_pixels: obj.y_pixels
+            y_pixels: obj.y_pixels,
+            rotation_degrees: obj.rotation_degrees || 0 // Include rotation in export
         }))
     };
 
@@ -1532,10 +1544,16 @@ function createObjectFromData(objectData) {
             height_inches: objectData.height_inches,
             x_pixels: objectData.x_pixels,
             y_pixels: objectData.y_pixels,
+            rotation_degrees: objectData.rotation_degrees || 0, // Use imported rotation or default to 0
             group: group,
             shape: rect,
             text: text
         });
+
+        // Apply rotation if it exists in the imported data
+        if (objectData.rotation_degrees) {
+            group.rotation(objectData.rotation_degrees);
+        }
 
         // Add drag event handlers to update stored position
         group.on('dragend', () => {
@@ -1572,6 +1590,34 @@ function clearAllObjects() {
     layer.batchDraw();
 }
 
+// Rotate Object button handler
+const rotateObjectBtn = document.getElementById('rotate-object-btn');
+rotateObjectBtn.addEventListener('click', rotateSelectedObject);
+
+// Function to rotate the selected object
+function rotateSelectedObject() {
+    // Check if an object is selected
+    if (selectedObjectIndex === -1) return;
+
+    // Get the selected object
+    const selectedObject = objects[selectedObjectIndex];
+
+    // Calculate the new rotation angle
+    const currentRotation = selectedObject.rotation_degrees || 0;
+    const newRotation = (currentRotation + rotationIncrement) % 360;
+
+    // Update the stored rotation value
+    selectedObject.rotation_degrees = newRotation;
+
+    // Apply the rotation to the group (which contains both the rectangle and text)
+    selectedObject.group.rotation(newRotation);
+
+    // Redraw the layer
+    layer.batchDraw();
+
+    console.log('Object rotated to:', newRotation, 'degrees');
+}
+
 // Initial setup
 updateExportButtonState();
 
@@ -1579,6 +1625,7 @@ updateExportButtonState();
 document.getElementById('commit-btn').textContent = 'Start Drawing';
 document.getElementById('commit-btn').disabled = false;
 document.getElementById('delete-polygon-btn').disabled = true;
+document.getElementById('rotate-object-btn').disabled = true; // Initially disabled until an object is selected
 
 // Initial draw of all layers
 backgroundLayer.batchDraw();

@@ -201,6 +201,20 @@ button:disabled {
     background-color: #303F9F;
 }
 
+/* Rotate button styles */
+.rotate-btn {
+    background-color: #FF9800; /* Orange color for rotate button */
+}
+
+.rotate-btn:hover {
+    background-color: #F57C00;
+}
+
+.rotate-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 .file-name {
     margin-left: 10px;
     font-style: italic;
