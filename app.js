@@ -42,6 +42,14 @@ let isEditMode = false; // Flag to track if we're in edit mode
 let selectedObjectIndex = -1; // Index of the currently selected object (-1 means none)
 const rotationIncrement = 30; // Rotation increment in degrees
 
+// State variable for showing dimensions
+let showDimensions = false; // Default to not showing dimensions
+
+// Make sure the toggle checkbox matches our default state
+window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('show-dimensions-toggle').checked = showDimensions;
+});
+
 // State variables for scale definition
 let isScaleDefinitionMode = false; // Flag to track if we're in scale definition mode
 let scaleStartPoint = null; // Starting point of the scale line
@@ -1318,11 +1326,16 @@ function createRectangle() {
         strokeWidth: 2,
     });
 
-    // Create a text label (relative to the group) that includes dimensions
+    // Create a text label (relative to the group) with or without dimensions based on toggle
+    // When showDimensions is false, only show the label
+    const textContent = showDimensions ?
+        `${label} (${widthFeet}' x ${heightFeet}')` :
+        `${label}`;
+
     const text = new Konva.Text({
         x: 0, // Center position (0,0) since the group is now centered
         y: 0, // Center position (0,0) since the group is now centered
-        text: `${label} (${widthFeet}' x ${heightFeet}')`,
+        text: textContent,
         fontSize: 16,
         fontFamily: 'Arial',
         fill: '#000',
@@ -1551,11 +1564,16 @@ function createObjectFromData(objectData) {
             strokeWidth: 2,
         });
 
-        // Create a text label (relative to the group)
+        // Create a text label (relative to the group) with or without dimensions based on toggle
+        // When showDimensions is false, only show the label
+        const textContent = showDimensions ?
+            `${objectData.label} (${widthFeet.toFixed(1)}' x ${heightFeet.toFixed(1)}')` :
+            `${objectData.label}`;
+
         const text = new Konva.Text({
             x: 0, // Center position (0,0) since the group is now centered
             y: 0, // Center position (0,0) since the group is now centered
-            text: `${objectData.label} (${widthFeet.toFixed(1)}' x ${heightFeet.toFixed(1)}')`,
+            text: textContent,
             fontSize: 16,
             fontFamily: 'Arial',
             fill: '#000',
@@ -1831,6 +1849,32 @@ document.addEventListener('keydown', (e) => {
             e.preventDefault();
         }
     }
+});
+
+// Function to update object label text based on showDimensions toggle
+function updateObjectLabels() {
+    objects.forEach(obj => {
+        if (showDimensions) {
+            // Show label with dimensions
+            obj.text.text(`${obj.label} (${obj.width_feet}' x ${obj.height_feet}')`);
+        } else {
+            // Show only the label without dimensions
+            obj.text.text(obj.label);
+        }
+
+        // Re-center the text after changing its content
+        obj.text.offsetX(obj.text.width() / 2);
+        obj.text.offsetY(obj.text.height() / 2);
+    });
+
+    // Redraw the layer to update the text
+    layer.batchDraw();
+}
+
+// Add event listener for the show dimensions toggle
+document.getElementById('show-dimensions-toggle').addEventListener('change', (e) => {
+    showDimensions = e.target.checked;
+    updateObjectLabels();
 });
 
 // Initial setup
