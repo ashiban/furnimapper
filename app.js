@@ -45,9 +45,13 @@ const rotationIncrement = 30; // Rotation increment in degrees
 // State variable for showing dimensions
 let showDimensions = false; // Default to not showing dimensions
 
-// Make sure the toggle checkbox matches our default state
+// State variable for showing polygon labels
+let showPolygonLabels = true; // Default to showing polygon labels
+
+// Make sure the toggle checkboxes match our default states
 window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('show-dimensions-toggle').checked = showDimensions;
+    document.getElementById('show-polygon-labels-toggle').checked = showPolygonLabels;
 });
 
 // State variables for scale definition
@@ -233,7 +237,8 @@ function saveLabel() {
     polygons.push({
         vertices: [...currentPolygon.points],
         label: label,
-        shape: currentPolygon.shape
+        shape: currentPolygon.shape,
+        labelText: currentPolygon.labelText // Store reference to the label text
     });
 
     // Add click event handler to the polygon for selection
@@ -299,6 +304,7 @@ function addLabelToCanvas(polygon) {
         fill: '#000',
         padding: 5,
         align: 'center',
+        visible: showPolygonLabels, // Set initial visibility based on toggle state
     });
 
     // Center the text
@@ -306,6 +312,10 @@ function addLabelToCanvas(polygon) {
     labelText.offsetY(labelText.height() / 2);
 
     layer.add(labelText);
+
+    // Store reference to the label text in the polygon object
+    polygon.labelText = labelText;
+
     layer.batchDraw();
 }
 
@@ -656,7 +666,7 @@ function importFloorGrid(file) {
                 const polygonCount = importedData.polygons ? importedData.polygons.length : 0;
                 const objectCount = importedData.objects ? importedData.objects.length : 0;
                 console.log(`Imported ${polygonCount} polygons and ${objectCount} objects`);
-                alert(`Successfully imported ${polygonCount} polygons and ${objectCount} objects`);
+                // alert(`Successfully imported ${polygonCount} polygons and ${objectCount} objects`);
             } else if (Array.isArray(importedData)) {
                 // Old format (array of polygons without scale or objects)
                 console.log('Detected old format JSON (array of polygons without objects)');
@@ -748,6 +758,8 @@ function createPolygonFromData(polygonData) {
 
     // Add label to the canvas
     addLabelToCanvas(polygon);
+
+    // The labelText reference is already stored by addLabelToCanvas
 
     // Store the polygon index before adding it
     const newPolygonIndex = polygons.length;
@@ -1871,10 +1883,28 @@ function updateObjectLabels() {
     layer.batchDraw();
 }
 
+// Function to update polygon label visibility based on showPolygonLabels toggle
+function updatePolygonLabels() {
+    polygons.forEach(polygon => {
+        if (polygon.labelText) {
+            polygon.labelText.visible(showPolygonLabels);
+        }
+    });
+
+    // Redraw the layer to update the visibility
+    layer.batchDraw();
+}
+
 // Add event listener for the show dimensions toggle
 document.getElementById('show-dimensions-toggle').addEventListener('change', (e) => {
     showDimensions = e.target.checked;
     updateObjectLabels();
+});
+
+// Add event listener for the show polygon labels toggle
+document.getElementById('show-polygon-labels-toggle').addEventListener('change', (e) => {
+    showPolygonLabels = e.target.checked;
+    updatePolygonLabels();
 });
 
 // Initial setup
