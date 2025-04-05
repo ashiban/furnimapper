@@ -1337,7 +1337,9 @@ function createRectangle() {
 
     // Create a chevron down arrow at the bottom center of the rectangle
     // to indicate orientation
-    const chevronSize = Math.min(widthPixels, heightPixels) * 0.15; // Size proportional to object
+    const minChevronSize = 5; // Minimum size in pixels to ensure visibility
+    const proportionalSize = Math.min(widthPixels, heightPixels) * 0.15;
+    const chevronSize = Math.max(minChevronSize, proportionalSize); // Use the larger of min size or proportional size
     const chevronWidth = chevronSize;
     const chevronHeight = chevronSize * 0.6;
 
@@ -1349,7 +1351,7 @@ function createRectangle() {
             chevronWidth/2, heightPixels/2 - chevronHeight * 1.5  // Right point
         ],
         stroke: '#000',
-        strokeWidth: 2,
+        strokeWidth: 3, // Increased stroke width for better visibility
         closed: false,
         fill: null,
     });
@@ -1568,7 +1570,9 @@ function createObjectFromData(objectData) {
 
         // Create a chevron down arrow at the bottom center of the rectangle
         // to indicate orientation
-        const chevronSize = Math.min(widthPixels, heightPixels) * 0.15; // Size proportional to object
+        const minChevronSize = 20; // Minimum size in pixels to ensure visibility
+        const proportionalSize = Math.min(widthPixels, heightPixels) * 0.15;
+        const chevronSize = Math.max(minChevronSize, proportionalSize); // Use the larger of min size or proportional size
         const chevronWidth = chevronSize;
         const chevronHeight = chevronSize * 0.6;
 
@@ -1580,7 +1584,7 @@ function createObjectFromData(objectData) {
                 chevronWidth/2, heightPixels/2 - chevronHeight * 1.5  // Right point
             ],
             stroke: '#000',
-            strokeWidth: 2,
+            strokeWidth: 3, // Increased stroke width for better visibility
             closed: false,
             fill: null,
         });

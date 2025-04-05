@@ -43,6 +43,7 @@
         <h1>Chevron Orientation Test</h1>
         <div id="canvas-container"></div>
         <button id="rotate-btn">Rotate Object</button>
+        <button id="add-small-btn">Add Small Object</button>
     </div>
 
     <script>
@@ -90,8 +91,11 @@
         text.offsetY(text.height() / 2);
 
         // Create a chevron down arrow
-        const chevronWidth = 30;
-        const chevronHeight = 18;
+        const minChevronSize = 20; // Minimum size in pixels
+        const proportionalSize = Math.min(150, 100) * 0.15; // 15% of the smaller dimension
+        const chevronSize = Math.max(minChevronSize, proportionalSize);
+        const chevronWidth = chevronSize;
+        const chevronHeight = chevronSize * 0.6;
 
         const chevron = new Konva.Line({
             points: [
@@ -100,7 +104,7 @@
                 chevronWidth/2, 50 - chevronHeight * 1.5   // Right point
             ],
             stroke: 'black',
-            strokeWidth: 2,
+            strokeWidth: 3, // Increased stroke width for better visibility
             closed: false,
         });
 
@@ -132,6 +136,69 @@
             // so we don't counter-rotate it
 
             // Redraw the layer
+            layer.draw();
+        });
+
+        // Add small object button handler
+        document.getElementById('add-small-btn').addEventListener('click', () => {
+            // Create a small group
+            const smallGroup = new Konva.Group({
+                x: 200,
+                y: 300,
+                draggable: true,
+            });
+
+            // Create a very small rectangle
+            const smallRect = new Konva.Rect({
+                x: -15,
+                y: -15,
+                width: 30,
+                height: 30,
+                fill: 'lightgreen',
+                stroke: 'black',
+                strokeWidth: 2,
+            });
+
+            // Create text for the small rectangle
+            const smallText = new Konva.Text({
+                x: 0,
+                y: 0,
+                text: 'Small',
+                fontSize: 12,
+                fontFamily: 'Arial',
+                fill: 'black',
+                align: 'center',
+            });
+
+            // Center the text
+            smallText.offsetX(smallText.width() / 2);
+            smallText.offsetY(smallText.height() / 2);
+
+            // Create a chevron with minimum size
+            const minChevronSize = 20; // Minimum size in pixels
+            const proportionalSize = Math.min(30, 30) * 0.15; // 15% of the smaller dimension
+            const smallChevronSize = Math.max(minChevronSize, proportionalSize);
+            const smallChevronWidth = smallChevronSize;
+            const smallChevronHeight = smallChevronSize * 0.6;
+
+            const smallChevron = new Konva.Line({
+                points: [
+                    -smallChevronWidth/2, 15 - smallChevronHeight * 1.5, // Left point
+                    0, 15 - smallChevronHeight * 0.5,                   // Bottom point
+                    smallChevronWidth/2, 15 - smallChevronHeight * 1.5  // Right point
+                ],
+                stroke: 'black',
+                strokeWidth: 3,
+                closed: false,
+            });
+
+            // Add shapes to the group
+            smallGroup.add(smallRect);
+            smallGroup.add(smallText);
+            smallGroup.add(smallChevron);
+
+            // Add the group to the layer
+            layer.add(smallGroup);
             layer.draw();
         });
     </script>
