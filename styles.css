@@ -143,6 +143,24 @@ button:disabled {
     justify-content: center;
 }
 
+/* Settings Modal Styles */
+#settings-modal .modal-content {
+    max-width: 400px;
+}
+
+#settings-modal .form-check {
+    margin-bottom: 15px;
+}
+
+#settings-modal .form-check-label {
+    font-size: 16px;
+    margin-left: 5px;
+}
+
+#settings-modal .modal-buttons {
+    margin-top: 20px;
+}
+
 .modal.show {
     display: flex;
 }
@@ -248,6 +266,40 @@ button:disabled {
 
 .selected-polygon {
     cursor: pointer;
+}
+
+/* Bootstrap Menu Styles */
+.bootstrap-menu {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.bootstrap-menu .dropdown-toggle {
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: 10px 20px;
+    font-size: 16px;
+}
+
+.bootstrap-menu .dropdown-toggle:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.bootstrap-menu .dropdown-menu {
+    min-width: 200px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.bootstrap-menu .dropdown-item {
+    padding: 8px 20px;
+    font-size: 15px;
+}
+
+.bootstrap-menu .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
 }
 
 /* Context Menu Styles */

@@ -1958,3 +1958,109 @@ backgroundLayer.batchDraw();
 layer.batchDraw();
 
 // Bootstrap handles the instructions toggle functionality
+
+// Bootstrap Menu Event Handlers
+document.getElementById('menu-new-plan').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (confirm('Are you sure you want to create a new floor plan? All unsaved changes will be lost.')) {
+        // Clear all polygons and objects
+        polygons.forEach(polygon => {
+            if (polygon.shape) polygon.shape.destroy();
+            if (polygon.labelText) polygon.labelText.destroy();
+        });
+        objects.forEach(obj => {
+            obj.rect.destroy();
+            obj.text.destroy();
+            if (obj.orientationMarker) obj.orientationMarker.destroy();
+        });
+
+        // Reset data structures
+        polygons = [];
+        objects = [];
+        selectedPolygonIndex = -1;
+        selectedObjectIndex = -1;
+
+        // Update UI
+        document.getElementById('polygon-counter').textContent = `Polygons: ${polygons.length}`;
+        updateExportButtonState();
+        layer.batchDraw();
+    }
+});
+
+document.getElementById('menu-import').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Trigger the file input click
+    document.getElementById('json-upload').click();
+});
+
+document.getElementById('menu-export').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Trigger the export function if enabled
+    if (!document.getElementById('export-btn').disabled) {
+        exportFloorGrid();
+    } else {
+        alert('You need to create at least one polygon before exporting.');
+    }
+});
+
+document.getElementById('menu-define-scale').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Trigger the define scale functionality
+    document.getElementById('define-scale-btn').click();
+});
+
+document.getElementById('menu-add-furniture').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Trigger the add furniture functionality
+    document.getElementById('add-rectangle-btn').click();
+});
+
+document.getElementById('menu-settings').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Create a settings modal if it doesn't exist
+    let settingsModal = document.getElementById('settings-modal');
+
+    if (!settingsModal) {
+        // Create the modal if it doesn't exist
+        settingsModal = document.createElement('div');
+        settingsModal.id = 'settings-modal';
+        settingsModal.className = 'modal';
+        settingsModal.innerHTML = `
+            <div class="modal-content">
+                <h3>Settings</h3>
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="settings-show-dimensions" ${showDimensions ? 'checked' : ''}>
+                    <label class="form-check-label" for="settings-show-dimensions">Show Dimensions</label>
+                </div>
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="settings-show-labels" ${showPolygonLabels ? 'checked' : ''}>
+                    <label class="form-check-label" for="settings-show-labels">Show Room Labels</label>
+                </div>
+                <div class="modal-buttons">
+                    <button id="settings-close-btn">Close</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(settingsModal);
+
+        // Add event listeners for the settings
+        document.getElementById('settings-show-dimensions').addEventListener('change', (e) => {
+            showDimensions = e.target.checked;
+            document.getElementById('show-dimensions-toggle').checked = showDimensions;
+            updateObjectLabels();
+        });
+
+        document.getElementById('settings-show-labels').addEventListener('change', (e) => {
+            showPolygonLabels = e.target.checked;
+            document.getElementById('show-polygon-labels-toggle').checked = showPolygonLabels;
+            updatePolygonLabels();
+        });
+
+        document.getElementById('settings-close-btn').addEventListener('click', () => {
+            settingsModal.classList.remove('show');
+        });
+    }
+
+    // Show the modal
+    settingsModal.classList.add('show');
+});
