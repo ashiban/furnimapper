@@ -97,7 +97,7 @@ const cancelRectangleBtn = document.getElementById('cancel-rectangle-btn');
 
 // Context menu elements
 const contextMenu = document.getElementById('context-menu');
-const contextMenuDeleteBtn = document.getElementById('context-menu').querySelector('.context-menu-item');
+const contextMenuDeleteBtn = document.getElementById('context-menu-delete-btn');
 let rightClickedPolygonIndex = -1; // Index of the polygon that was right-clicked
 
 // Handle mouse clicks on stage

@@ -34,9 +34,9 @@
                     <p>To edit a polygon, click on it to select it. Red handles will appear at each vertex. Drag these handles to reshape the polygon. Click anywhere outside the polygon to commit your changes.</p>
                     <p>When a polygon is selected, you can click the "Delete Polygon" button to remove it.</p>
                     <p>Use the <strong>Define Scale</strong> button to set the real-world scale of your floor plan. Draw a horizontal or vertical line and specify its length in feet.</p>
-                    <p>Use the <strong>Add Rectangle</strong> button to add furniture or other objects to your floor plan. You'll need to define the scale first, then specify the width and height in feet.</p>
-                    <p>Use the <strong>Rotate Object</strong> button to rotate the currently selected object in 15-degree increments.</p>
-                    <p>Use the <strong>Delete Object</strong> button to remove the currently selected object from the floor plan.</p>
+                    <p>Use the <strong>Add Furniture</strong> button to add furniture or other objects to your floor plan. You'll need to define the scale first, then specify the width and height in feet.</p>
+                    <p>Use the <strong>Rotate Furniture</strong> button to rotate the currently selected object in 15-degree increments.</p>
+                    <p>Use the <strong>Delete Furniture</strong> button to remove the currently selected object from the floor plan.</p>
                     <p>Use the <strong>Export Floor Grid</strong> button to save your work as a JSON file, and <strong>Import Floor Grid</strong> to load a previously saved floor plan.</p>
                     <p>Use the <strong>Show Dimensions</strong> toggle to show or hide dimensions on furniture and objects.</p>
                     <p>Use the <strong>Show Room Labels</strong> toggle to show or hide the labels on rooms and areas.</p>
@@ -56,12 +56,12 @@
             <span id="import-file-name" class="file-name"></span>
         </div>
         <div class="controls">
-            <button id="commit-btn" disabled>Commit Polygon</button>
-            <button id="delete-polygon-btn" disabled>Delete Polygon</button>
+            <button id="commit-btn" disabled hidden>Commit Polygon</button>
+            <button id="delete-polygon-btn" disabled hidden>Delete Polygon</button>
             <button id="define-scale-btn" class="scale-btn">Define Scale</button>
-            <button id="add-rectangle-btn" class="rectangle-btn">Add Rectangle</button>
-            <button id="rotate-object-btn" class="rotate-btn" disabled>Rotate Object</button>
-            <button id="delete-object-btn" class="delete-btn" disabled>Delete Object</button>
+            <button id="add-rectangle-btn" class="rectangle-btn">Add Furniture</button>
+            <button id="rotate-object-btn" class="rotate-btn" disabled>Rotate Furniture</button>
+            <button id="delete-object-btn" class="delete-btn" disabled>Delete Furniture</button>
             <button id="export-btn" disabled>Export Floor Grid</button>
             <div id="polygon-counter">Polygons: 0</div>
             <div class="form-check form-switch mt-2">
@@ -90,7 +90,7 @@
     <!-- Rectangle Modal -->
     <div id="rectangle-modal" class="modal">
         <div class="modal-content">
-            <h3>Add Rectangle</h3>
+            <h3>Add Furniture</h3>
             <div class="input-group">
                 <label for="rectangle-width">Width (feet):</label>
                 <input type="number" id="rectangle-width" min="0.1" step="0.1" placeholder="Enter width">
@@ -105,14 +105,14 @@
             </div>
             <div class="modal-buttons">
                 <button id="cancel-rectangle-btn">Cancel</button>
-                <button id="add-rectangle-confirm-btn">Add Rectangle</button>
+                <button id="add-rectangle-confirm-btn">Add Furniture</button>
             </div>
         </div>
     </div>
 
     <!-- Context Menu -->
     <div id="context-menu" class="context-menu">
-        <div class="context-menu-item" id="delete-polygon-btn">Delete Polygon</div>
+        <div class="context-menu-item" id="context-menu-delete-btn">Delete Polygon</div>
     </div>
 
     <script src="app.js"></script>
