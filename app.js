@@ -1848,16 +1848,52 @@ function rotateSelectedObject() {
     console.log('Object rotated to:', newRotation, 'degrees');
 }
 
-// Add keyboard event listener for rotating objects with 'r' key
-document.addEventListener('keydown', (e) => {
-    // Check if the pressed key is 'r' or 'R'
-    if (e.key === 'r' || e.key === 'R') {
-        // Check if an object is selected
-        if (selectedObjectIndex !== -1) {
-            // Call the rotate function
-            rotateSelectedObject();
+// Function to rotate the selected object counterclockwise
+function rotateSelectedObjectCounterclockwise() {
+    // Check if an object is selected
+    if (selectedObjectIndex === -1) return;
 
+    // Get the selected object
+    const selectedObject = objects[selectedObjectIndex];
+
+    // Calculate the new rotation angle
+    const currentRotation = selectedObject.rotation_degrees || 0;
+    // Subtract the rotation increment and ensure the result is between 0 and 360
+    const newRotation = (currentRotation - rotationIncrement + 360) % 360;
+
+    // Update the stored rotation value
+    selectedObject.rotation_degrees = newRotation;
+
+    // Apply the rotation to the group (which contains both the rectangle and text)
+    selectedObject.group.rotation(newRotation);
+
+    // Keep the text orientation fixed by counter-rotating it
+    // This cancels out the group rotation for the text only
+    selectedObject.text.rotation(-newRotation);
+
+    // The chevron should rotate with the object to show orientation
+    // so we don't counter-rotate it
+
+    // Redraw the layer
+    layer.batchDraw();
+
+    console.log('Object rotated to:', newRotation, 'degrees (counterclockwise)');
+}
+
+// Add keyboard event listener for rotating objects with 'r' and 'e' keys
+document.addEventListener('keydown', (e) => {
+    // Check if an object is selected
+    if (selectedObjectIndex !== -1) {
+        // Check which key was pressed
+        if (e.key === 'r' || e.key === 'R') {
+            // Rotate clockwise
+            rotateSelectedObject();
             // Prevent default behavior (like scrolling)
+            e.preventDefault();
+        } else if (e.key === 'e' || e.key === 'E') {
+            // Rotate counterclockwise
+            rotateSelectedObjectCounterclockwise();
+            // Prevent default behavior
             e.preventDefault();
         }
     }
