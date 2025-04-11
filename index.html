@@ -19,14 +19,20 @@
 <body>
     <div class="container">
         <h1>Floor Plan Organization Tool</h1>
-        <div class="upload-controls">
-            <label for="image-upload" class="upload-label">Upload Floor Plan Image:</label>
-            <input type="file" id="image-upload" accept="image/*">
-        </div>
-        <div class="upload-controls">
-            <button id="import-btn" class="btn btn-info btn-sm import-btn">Import Floor Grid</button>
-            <input type="file" id="json-upload" accept=".json" style="display: none;">
-            <span id="import-file-name" class="file-name"></span>
+        <div class="row align-items-center mb-3">
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">Upload Floor Plan Image:</span>
+                    <input type="file" id="image-upload" class="form-control" accept="image/*">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                    <button id="import-btn" class="btn btn-primary">Import Floor Grid</button>
+                    <input type="file" id="json-upload" accept=".json" style="display: none;">
+                    <span id="import-file-name" class="form-control bg-light text-muted fst-italic text-truncate">Furniture not loaded</span>
+                </div>
+            </div>
         </div>
         <div class="controls">
             <button id="commit-btn" class="btn btn-success btn-sm" disabled hidden>Commit Polygon</button>

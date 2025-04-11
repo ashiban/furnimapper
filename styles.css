@@ -71,25 +71,7 @@ h3 {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.upload-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 10px;
-}
-
-.upload-label {
-    font-weight: bold;
-    margin-right: 5px;
-}
-
-#image-upload {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #f8f9fa;
-}
+/* Upload controls now use Bootstrap classes */
 
 /* Controls container for buttons */
 .controls {
@@ -214,24 +196,9 @@ h3 {
 
 /* Custom button styles for Bootstrap integration */
 
-/* Import button styles */
-.import-btn {
-    background-color: #2196F3 !important; /* Blue color to differentiate from other buttons */
-}
+/* Import button styles now use Bootstrap classes */
 
-.import-btn:hover {
-    background-color: #0b7dda !important;
-}
-
-.file-name {
-    margin-left: 10px;
-    font-style: italic;
-    color: #666;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+/* File name styles now use Bootstrap classes */
 
 /* Polygon editing styles */
 .vertex-handle {

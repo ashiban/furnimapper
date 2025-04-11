@@ -692,11 +692,15 @@ function importFloorGrid(file) {
         } catch (error) {
             console.error('Error importing floor grid:', error);
             alert(`Error importing floor grid: ${error.message}`);
+            // Reset to default message on error
+            importFileName.textContent = 'Furniture not loaded';
         }
     };
 
     reader.onerror = () => {
         alert('Error reading the file');
+        // Reset to default message on error
+        importFileName.textContent = 'Furniture not loaded';
     };
 
     // Read the file as text
@@ -802,6 +806,10 @@ function createPolygonFromData(polygonData) {
 // Import button and file input handlers
 const importBtn = document.getElementById('import-btn');
 const jsonUploadInput = document.getElementById('json-upload');
+const importFileName = document.getElementById('import-file-name');
+
+// Initialize with default message
+// importFileName.textContent = 'Furniture not loaded'; // Already set in HTML
 
 // Click on import button triggers file input
 importBtn.addEventListener('click', () => {
@@ -813,6 +821,9 @@ jsonUploadInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         importFloorGrid(file);
+    } else {
+        // Reset to default message if no file selected
+        importFileName.textContent = 'Furniture not loaded';
     }
     // Reset the input so the same file can be selected again
     e.target.value = '';
@@ -1992,6 +2003,8 @@ document.getElementById('menu-new-plan').addEventListener('click', (e) => {
         // Update UI
         document.getElementById('polygon-counter').textContent = `Polygons: ${polygons.length}`;
         updateExportButtonState();
+        // Reset import file name message
+        importFileName.textContent = 'Furniture not loaded';
         layer.batchDraw();
     }
 });
