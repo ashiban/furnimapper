@@ -19,6 +19,15 @@
 <body>
     <div class="container">
         <h1>Floor Plan Organization Tool</h1>
+        <div class="upload-controls">
+            <label for="image-upload" class="upload-label">Upload Floor Plan Image:</label>
+            <input type="file" id="image-upload" accept="image/*">
+        </div>
+        <div class="upload-controls">
+            <button id="import-btn" class="btn btn-info btn-sm import-btn">Import Floor Grid</button>
+            <input type="file" id="json-upload" accept=".json" style="display: none;">
+            <span id="import-file-name" class="file-name"></span>
+        </div>
         <div class="controls">
             <button id="commit-btn" class="btn btn-success btn-sm" disabled hidden>Commit Polygon</button>
             <button id="delete-polygon-btn" class="btn btn-danger btn-sm" disabled hidden>Delete Polygon</button>
@@ -33,15 +42,7 @@
         <div class="canvas-wrapper">
             <div id="canvas-container"></div>
         </div>
-        <div class="upload-controls">
-            <label for="image-upload" class="upload-label">Upload Floor Plan Image:</label>
-            <input type="file" id="image-upload" accept="image/*">
-        </div>
-        <div class="upload-controls">
-            <button id="import-btn" class="btn btn-info btn-sm import-btn">Import Floor Grid</button>
-            <input type="file" id="json-upload" accept=".json" style="display: none;">
-            <span id="import-file-name" class="file-name"></span>
-        </div>
+
 
     </div>
 
