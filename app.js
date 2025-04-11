@@ -1439,6 +1439,15 @@ function createFurnitureObject(centerX, centerY, widthFeet, heightFeet, label) {
         selectObject(objectIndex);
     });
 
+    // Add drag event handler to update stored position
+    group.on('dragend', () => {
+        // Update the stored position
+        // Subtract half width/height to store the top-left position
+        objects[objectIndex].x_pixels = group.x() - widthPixels / 2;
+        objects[objectIndex].y_pixels = group.y() - heightPixels / 2;
+        console.log(`Object ${label} moved to position: (${objects[objectIndex].x_pixels.toFixed(2)}, ${objects[objectIndex].y_pixels.toFixed(2)})`);
+    });
+
     // Add hover event handlers to show/hide full text
     group.on('mouseenter', () => {
         // Show text on hover
