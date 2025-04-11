@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Parsing Test</title>
+    <!-- Include PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Parsing Test</h1>
+    <p>Paste tab-delimited CSV data below and click "Parse CSV" to test the parsing function.</p>
+
+    <textarea id="csv-data">Item	Width	Length
+Garage White Cupboard	4.49	1.57
+Garage White Tools Tray	1.12	1.67
+Garage Treadmill	2.1	4.63
+Livingroom Couch	6.5	5.71
+Livingroom TV Stand	4.49	1.28
+Livingroom Bookshelf	4.43	1.08
+Livingroom Glasses Tray	0.92	1.58
+Livingroom Mirror	1.51	1.77
+Master Bed	4.89	6.79
+Master Massage Chair	1.9	4.82
+Master Movable Table	1.28	5.77
+Office Bed	4.86	6.56
+Office Drawer	2.62	1.51
+Office Su Workstation	4.99	3.41
+Office Stand	3.18	1.15
+Office Bookshelf	2.82	0.85
+Office Ala Workstation	3.22	1.9
+Office Ottoman	1.31	1.35</textarea>
+
+    <button id="parse-btn">Parse CSV</button>
+
+    <div id="result"></div>
+
+    <script src="helpers.js"></script>
+    <script>
+        document.getElementById('parse-btn').addEventListener('click', function() {
+            const csvData = document.getElementById('csv-data').value;
+            const result = document.getElementById('result');
+
+            try {
+                const parsedData = parseFurnitureCSV(csvData);
+                result.textContent = JSON.stringify(parsedData, null, 2);
+                console.log('Parsed data:', parsedData);
+            } catch (error) {
+                result.textContent = 'Error parsing CSV: ' + error.message;
+                console.error('Error parsing CSV:', error);
+            }
+        });
+    </script>
+</body>
+</html>

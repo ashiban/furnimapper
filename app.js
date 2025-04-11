@@ -1304,41 +1304,32 @@ function parseFurnitureData() {
     }
 
     try {
-        // Split the data into lines
-        const lines = data.split('\n');
+        // Use the helper function to parse the CSV data
+        const furnitureItems = parseFurnitureCSV(data);
+
+        if (furnitureItems.length === 0) {
+            alert('No valid furniture data found. Please check your format. Expected format: Item\tWidth\tLength with a header row.');
+            return;
+        }
+
+        // Create furniture objects for each parsed item
         let successCount = 0;
 
-        // Process each line
-        for (const line of lines) {
-            if (!line.trim()) continue; // Skip empty lines
+        furnitureItems.forEach(item => {
+            // Calculate center position (middle of the stage)
+            const centerX = stage.width() / 2;
+            const centerY = stage.height() / 2;
 
-            // Split the line by comma or tab
-            const parts = line.split(/[,\t]/);
-
-            // Check if we have at least 3 parts (label, width, height)
-            if (parts.length >= 3) {
-                const label = parts[0].trim();
-                const widthFeet = parseFloat(parts[1]);
-                const heightFeet = parseFloat(parts[2]);
-
-                // Validate dimensions
-                if (!isNaN(widthFeet) && !isNaN(heightFeet) && widthFeet > 0 && heightFeet > 0) {
-                    // Calculate center position (middle of the stage)
-                    const centerX = stage.width() / 2;
-                    const centerY = stage.height() / 2;
-
-                    // Create the furniture object
-                    createFurnitureObject(centerX, centerY, widthFeet, heightFeet, label);
-                    successCount++;
-                }
-            }
-        }
+            // Create the furniture object
+            createFurnitureObject(centerX, centerY, item.widthFeet, item.heightFeet, item.label);
+            successCount++;
+        });
 
         if (successCount > 0) {
             alert(`Successfully added ${successCount} furniture item(s).`);
             hidePasteFurnitureModal();
         } else {
-            alert('No valid furniture data found. Please check your format: Label, Width, Height');
+            alert('No furniture items were added. Please check the console for details.');
         }
     } catch (error) {
         console.error('Error parsing furniture data:', error);
