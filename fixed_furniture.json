@@ -1,0 +1,167 @@
+{
+  "scale_pixels_per_foot": 17.46153846153846,
+  "objects": [
+    {
+      "type": "rectangle",
+      "label": "Garage White Cupboard",
+      "width_feet": 4.49,
+      "height_feet": 1.57,
+      "x_pixels": 393.79884615384617,
+      "y_pixels": 249.2926923076923,
+      "rotation_degrees": 0
+    },
+    {
+      "type": "rectangle",
+      "label": "Garage White Tools Tray",
+      "width_feet": 1.12,
+      "height_feet": 1.67,
+      "x_pixels": 406.22153846153844,
+      "y_pixels": 208.41961538461538,
+      "rotation_degrees": 180
+    },
+    {
+      "type": "rectangle",
+      "label": "Garage Treadmill",
+      "width_feet": 2.1,
+      "height_feet": 4.63,
+      "x_pixels": 297.6653846153846,
+      "y_pixels": 391.57653846153846,
+      "rotation_degrees": 0
+    },
+    {
+      "type": "rectangle",
+      "label": "Livingroom Couch",
+      "width_feet": 6.5,
+      "height_feet": 5.71,
+      "x_pixels": 532.25,
+      "y_pixels": 271.1473076923077,
+      "rotation_degrees": 270
+    },
+    {
+      "type": "rectangle",
+      "label": "Livingroom TV Stand",
+      "width_feet": 4.49,
+      "height_feet": 1.28,
+      "x_pixels": 707.7988461538462,
+      "y_pixels": 312.8246153846154,
+      "rotation_degrees": 90
+    },
+    {
+      "type": "rectangle",
+      "label": "Livingroom Bookshelf",
+      "width_feet": 4.43,
+      "height_feet": 1.08,
+      "x_pixels": 594.3226923076924,
+      "y_pixels": 462.57076923076926,
+      "rotation_degrees": 180
+    },
+    {
+      "type": "rectangle",
+      "label": "Livingroom Glasses Tray",
+      "width_feet": 0.92,
+      "height_feet": 1.58,
+      "x_pixels": 428.9676923076923,
+      "y_pixels": 209.20538461538462,
+      "rotation_degrees": 180
+    },
+    {
+      "type": "rectangle",
+      "label": "Livingroom Mirror",
+      "width_feet": 1.51,
+      "height_feet": 1.77,
+      "x_pixels": 485.81653846153847,
+      "y_pixels": 42.54653846153846,
+      "rotation_degrees": 0
+    },
+    {
+      "type": "rectangle",
+      "label": "Master Bed",
+      "width_feet": 4.89,
+      "height_feet": 6.79,
+      "x_pixels": 350.0,
+      "y_pixels": 250.0,
+      "rotation_degrees": 180
+    },
+    {
+      "type": "rectangle",
+      "label": "Master Massage Chair",
+      "width_feet": 1.9,
+      "height_feet": 4.82,
+      "x_pixels": 567.4115384615385,
+      "y_pixels": 367.9176923076923,
+      "rotation_degrees": 270
+    },
+    {
+      "type": "rectangle",
+      "label": "Master Movable Table",
+      "width_feet": 1.28,
+      "height_feet": 5.77,
+      "x_pixels": 85.82461538461538,
+      "y_pixels": 303.6234615384615,
+      "rotation_degrees": 270
+    },
+    {
+      "type": "rectangle",
+      "label": "Office Bed",
+      "width_feet": 4.86,
+      "height_feet": 6.56,
+      "x_pixels": 53.56846153846154,
+      "y_pixels": 342.72615384615386,
+      "rotation_degrees": 180
+    },
+    {
+      "type": "rectangle",
+      "label": "Office Drawer",
+      "width_feet": 2.62,
+      "height_feet": 1.51,
+      "x_pixels": 219.12538461538463,
+      "y_pixels": 456.81653846153847,
+      "rotation_degrees": 180
+    },
+    {
+      "type": "rectangle",
+      "label": "Office Su Workstation",
+      "width_feet": 4.99,
+      "height_feet": 3.41,
+      "x_pixels": 192.43346153846153,
+      "y_pixels": 330.2280769230769,
+      "rotation_degrees": 90
+    },
+    {
+      "type": "rectangle",
+      "label": "Office Stand",
+      "width_feet": 3.18,
+      "height_feet": 1.15,
+      "x_pixels": 92.23615384615385,
+      "y_pixels": 235.95961538461538,
+      "rotation_degrees": 0
+    },
+    {
+      "type": "rectangle",
+      "label": "Office Bookshelf",
+      "width_feet": 2.82,
+      "height_feet": 0.85,
+      "x_pixels": 24.379230769230773,
+      "y_pixels": 297.57884615384614,
+      "rotation_degrees": 270
+    },
+    {
+      "type": "rectangle",
+      "label": "Office Ottoman",
+      "width_feet": 1.31,
+      "height_feet": 1.35,
+      "x_pixels": 386.5626923076923,
+      "y_pixels": 414.21346153846156,
+      "rotation_degrees": 90
+    },
+    {
+      "type": "rectangle",
+      "label": "Work Station",
+      "width_feet": 3,
+      "height_feet": 2,
+      "x_pixels": 290.8076923076923,
+      "y_pixels": 438.53846153846155,
+      "rotation_degrees": 180
+    }
+  ]
+}

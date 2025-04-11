@@ -26,9 +26,39 @@ const rotationIncrement = 30; // Rotation increment in degrees
 // State variable for showing dimensions
 let showDimensions = false; // Default to not showing dimensions
 
-// Make sure the toggle checkboxes match our default states
+// Make sure all elements are properly initialized when the DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
+    // Initialize toggle checkboxes
     document.getElementById('show-dimensions-toggle').checked = showDimensions;
+
+    // Ensure Paste Furniture button and modal are properly initialized
+    const pasteFurnitureBtn = document.getElementById('paste-furniture-btn');
+    if (pasteFurnitureBtn) {
+        pasteFurnitureBtn.addEventListener('click', showPasteFurnitureModal);
+        console.log('Paste Furniture button initialized');
+    } else {
+        console.error('Paste Furniture button not found');
+    }
+
+    // Initialize modal elements
+    pasteFurnitureModal = document.getElementById('paste-furniture-modal');
+    furnitureDataTextarea = document.getElementById('furniture-data');
+    parseFurnitureBtn = document.getElementById('parse-furniture-btn');
+    cancelPasteBtn = document.getElementById('cancel-paste-btn');
+
+    if (parseFurnitureBtn) {
+        parseFurnitureBtn.addEventListener('click', parseFurnitureData);
+        console.log('Parse Furniture button initialized');
+    } else {
+        console.error('Parse Furniture button not found');
+    }
+
+    if (cancelPasteBtn) {
+        cancelPasteBtn.addEventListener('click', hidePasteFurnitureModal);
+        console.log('Cancel Paste button initialized');
+    } else {
+        console.error('Cancel Paste button not found');
+    }
 });
 
 // State variables for scale definition
@@ -55,11 +85,11 @@ const rectangleLabelInput = document.getElementById('rectangle-label');
 const addRectangleConfirmBtn = document.getElementById('add-rectangle-confirm-btn');
 const cancelRectangleBtn = document.getElementById('cancel-rectangle-btn');
 
-// Paste Furniture modal elements
-const pasteFurnitureModal = document.getElementById('paste-furniture-modal');
-const furnitureDataTextarea = document.getElementById('furniture-data');
-const parseFurnitureBtn = document.getElementById('parse-furniture-btn');
-const cancelPasteBtn = document.getElementById('cancel-paste-btn');
+// Paste Furniture modal elements - these are initialized in the DOMContentLoaded event
+let pasteFurnitureModal;
+let furnitureDataTextarea;
+let parseFurnitureBtn;
+let cancelPasteBtn;
 
 // Handle mouse clicks on stage
 stage.on('click', (e) => {
@@ -189,7 +219,7 @@ function exportFloorGrid() {
             height_feet: obj.height_feet,
             x_pixels: obj.x_pixels,
             y_pixels: obj.y_pixels,
-            rotation_degrees: obj.rotation_degrees || 0 // Include rotation in export
+            rotation_degrees: obj.rotation_degrees || obj.rotation || 0 // Include rotation in export, handle both property names
         }))
     };
 
@@ -1263,10 +1293,6 @@ layer.batchDraw();
 
 // Bootstrap handles the instructions toggle functionality
 
-// Paste Furniture button handler
-const pasteFurnitureBtn = document.getElementById('paste-furniture-btn');
-pasteFurnitureBtn.addEventListener('click', showPasteFurnitureModal);
-
 // Function to show the paste furniture modal
 function showPasteFurnitureModal() {
     // Check if scale is defined
@@ -1287,12 +1313,6 @@ function showPasteFurnitureModal() {
 function hidePasteFurnitureModal() {
     pasteFurnitureModal.classList.remove('show');
 }
-
-// Cancel button handler for paste furniture modal
-cancelPasteBtn.addEventListener('click', hidePasteFurnitureModal);
-
-// Parse button handler for paste furniture modal
-parseFurnitureBtn.addEventListener('click', parseFurnitureData);
 
 // Function to parse furniture data from textarea
 function parseFurnitureData() {
@@ -1408,7 +1428,9 @@ function createFurnitureObject(centerX, centerY, widthFeet, heightFeet, label) {
         label: label,
         width_feet: widthFeet,
         height_feet: heightFeet,
-        rotation: 0, // Initial rotation angle
+        rotation_degrees: 0, // Initial rotation angle
+        x_pixels: centerX - widthPixels / 2, // Store top-left position
+        y_pixels: centerY - heightPixels / 2  // Store top-left position
     });
 
     // Add click handler for selection
