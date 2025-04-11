@@ -55,6 +55,12 @@ const rectangleLabelInput = document.getElementById('rectangle-label');
 const addRectangleConfirmBtn = document.getElementById('add-rectangle-confirm-btn');
 const cancelRectangleBtn = document.getElementById('cancel-rectangle-btn');
 
+// Paste Furniture modal elements
+const pasteFurnitureModal = document.getElementById('paste-furniture-modal');
+const furnitureDataTextarea = document.getElementById('furniture-data');
+const parseFurnitureBtn = document.getElementById('parse-furniture-btn');
+const cancelPasteBtn = document.getElementById('cancel-paste-btn');
+
 // Handle mouse clicks on stage
 stage.on('click', (e) => {
     // Get the clicked target
@@ -1257,6 +1263,191 @@ layer.batchDraw();
 
 // Bootstrap handles the instructions toggle functionality
 
+// Paste Furniture button handler
+const pasteFurnitureBtn = document.getElementById('paste-furniture-btn');
+pasteFurnitureBtn.addEventListener('click', showPasteFurnitureModal);
+
+// Function to show the paste furniture modal
+function showPasteFurnitureModal() {
+    // Check if scale is defined
+    if (scalePixelsPerFoot === null) {
+        alert('Please define the scale using the "Define Scale" button first.');
+        return;
+    }
+
+    // Reset textarea
+    furnitureDataTextarea.value = '';
+
+    // Show the modal
+    pasteFurnitureModal.classList.add('show');
+    furnitureDataTextarea.focus();
+}
+
+// Function to hide the paste furniture modal
+function hidePasteFurnitureModal() {
+    pasteFurnitureModal.classList.remove('show');
+}
+
+// Cancel button handler for paste furniture modal
+cancelPasteBtn.addEventListener('click', hidePasteFurnitureModal);
+
+// Parse button handler for paste furniture modal
+parseFurnitureBtn.addEventListener('click', parseFurnitureData);
+
+// Function to parse furniture data from textarea
+function parseFurnitureData() {
+    const data = furnitureDataTextarea.value.trim();
+
+    if (!data) {
+        alert('Please paste furniture data first.');
+        return;
+    }
+
+    try {
+        // Split the data into lines
+        const lines = data.split('\n');
+        let successCount = 0;
+
+        // Process each line
+        for (const line of lines) {
+            if (!line.trim()) continue; // Skip empty lines
+
+            // Split the line by comma or tab
+            const parts = line.split(/[,\t]/);
+
+            // Check if we have at least 3 parts (label, width, height)
+            if (parts.length >= 3) {
+                const label = parts[0].trim();
+                const widthFeet = parseFloat(parts[1]);
+                const heightFeet = parseFloat(parts[2]);
+
+                // Validate dimensions
+                if (!isNaN(widthFeet) && !isNaN(heightFeet) && widthFeet > 0 && heightFeet > 0) {
+                    // Calculate center position (middle of the stage)
+                    const centerX = stage.width() / 2;
+                    const centerY = stage.height() / 2;
+
+                    // Create the furniture object
+                    createFurnitureObject(centerX, centerY, widthFeet, heightFeet, label);
+                    successCount++;
+                }
+            }
+        }
+
+        if (successCount > 0) {
+            alert(`Successfully added ${successCount} furniture item(s).`);
+            hidePasteFurnitureModal();
+        } else {
+            alert('No valid furniture data found. Please check your format: Label, Width, Height');
+        }
+    } catch (error) {
+        console.error('Error parsing furniture data:', error);
+        alert('Error parsing furniture data. Please check your format.');
+    }
+}
+
+// Function to create a furniture object at the specified position
+function createFurnitureObject(centerX, centerY, widthFeet, heightFeet, label) {
+    // Calculate pixel dimensions based on scale
+    const widthPixels = widthFeet * scalePixelsPerFoot;
+    const heightPixels = heightFeet * scalePixelsPerFoot;
+
+    // Create a group to hold the rectangle, text, and orientation indicator
+    const group = new Konva.Group({
+        x: centerX,
+        y: centerY,
+        draggable: true,
+    });
+
+    // Create a rectangle shape (relative to the group)
+    const rect = new Konva.Rect({
+        x: -widthPixels / 2, // Position relative to group center
+        y: -heightPixels / 2, // Position relative to group center
+        width: widthPixels,
+        height: heightPixels,
+        fill: getRandomColor(0.6), // Different opacity to distinguish from room polygons
+        stroke: '#000',
+        strokeWidth: 2,
+    });
+
+    // Create a text label (relative to the group) with or without dimensions based on toggle
+    const textContent = showDimensions ?
+        `${label} (${widthFeet.toFixed(1)}' x ${heightFeet.toFixed(1)}')` :
+        `${label}`;
+
+    const text = new Konva.Text({
+        text: textContent,
+        fontSize: 14,
+        fontFamily: 'Arial',
+        fill: '#000',
+        visible: false, // Initially hidden, shown on hover or selection
+    });
+
+    // Center the text
+    text.offsetX(text.width() / 2);
+    text.offsetY(text.height() / 2);
+
+    // Create orientation indicator (chevron pointing down)
+    const chevronSize = Math.max(15, Math.min(widthPixels, heightPixels) * 0.15); // Min size of 15px, or 15% of the smaller dimension
+    const chevron = new Konva.RegularPolygon({
+        sides: 3,
+        radius: chevronSize,
+        fill: '#000',
+        opacity: 0.7,
+        y: heightPixels / 2 - chevronSize, // Position at bottom center of rectangle
+        rotation: 180, // Point downward
+    });
+
+    // Add shapes to the group
+    group.add(rect);
+    group.add(text);
+    group.add(chevron);
+
+    // Add the group to the layer
+    layer.add(group);
+
+    // Store the object data
+    const objectIndex = objects.length;
+    objects.push({
+        type: 'rectangle',
+        group: group,
+        shape: rect,
+        text: text,
+        chevron: chevron,
+        label: label,
+        width_feet: widthFeet,
+        height_feet: heightFeet,
+        rotation: 0, // Initial rotation angle
+    });
+
+    // Add click handler for selection
+    group.on('click', (e) => {
+        e.cancelBubble = true;
+        selectObject(objectIndex);
+    });
+
+    // Add hover event handlers to show/hide full text
+    group.on('mouseenter', () => {
+        // Show text on hover
+        text.visible(true);
+        layer.batchDraw();
+    });
+
+    group.on('mouseleave', () => {
+        // Hide text when not hovering, unless selected
+        if (selectedObjectIndex !== objectIndex) {
+            text.visible(false);
+            layer.batchDraw();
+        }
+    });
+
+    // Update export button state
+    updateExportButtonState();
+
+    // Return the created object index
+    return objectIndex;
+}
+
 // Bootstrap Menu Event Handlers
 document.getElementById('menu-new-plan').addEventListener('click', (e) => {
     e.preventDefault();
@@ -1304,6 +1495,12 @@ document.getElementById('menu-add-furniture').addEventListener('click', (e) => {
     e.preventDefault();
     // Trigger the add furniture functionality
     document.getElementById('add-rectangle-btn').click();
+});
+
+document.getElementById('menu-paste-furniture').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Trigger the paste furniture functionality
+    document.getElementById('paste-furniture-btn').click();
 });
 
 document.getElementById('menu-settings').addEventListener('click', (e) => {

@@ -39,6 +39,7 @@
         <div class="controls">
             <button id="define-scale-btn" class="btn btn-purple btn-sm scale-btn">Define Scale</button>
             <button id="add-rectangle-btn" class="btn btn-primary btn-sm rectangle-btn">Add Furniture</button>
+            <button id="paste-furniture-btn" class="btn btn-success btn-sm">Paste Furniture</button>
             <button id="rotate-left-btn" class="btn btn-warning btn-sm rotate-btn" disabled>Rotate Left</button>
             <button id="rotate-object-btn" class="btn btn-warning btn-sm rotate-btn" disabled>Rotate Right</button>
             <button id="delete-object-btn" class="btn btn-danger btn-sm delete-btn" disabled>Delete Furniture</button>
@@ -71,6 +72,22 @@
             <div class="modal-buttons">
                 <button id="cancel-rectangle-btn" class="btn btn-secondary btn-sm">Cancel</button>
                 <button id="add-rectangle-confirm-btn" class="btn btn-primary btn-sm">Add Furniture</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paste Furniture Modal -->
+    <div id="paste-furniture-modal" class="modal">
+        <div class="modal-content">
+            <h3>Paste Furniture Data</h3>
+            <p class="text-muted">Paste CSV data for furniture items</p>
+            <div class="input-group">
+                <label for="furniture-data">Furniture Data:</label>
+                <textarea id="furniture-data" class="form-control" rows="8" placeholder="Paste your furniture data here..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-paste-btn" class="btn btn-secondary">Cancel</button>
+                <button id="parse-furniture-btn" class="btn btn-primary">Parse</button>
             </div>
         </div>
     </div>
