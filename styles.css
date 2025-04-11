@@ -84,16 +84,6 @@ h3 {
     gap: 5px;
 }
 
-#polygon-counter {
-    font-size: 16px;
-    font-weight: bold;
-    color: #2c3e50;
-    padding: 5px 10px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-}
-
 /* Button styles are now handled by Bootstrap */
 
 /* Custom button spacing in controls */
@@ -200,15 +190,6 @@ h3 {
 
 /* File name styles now use Bootstrap classes */
 
-/* Polygon editing styles */
-.vertex-handle {
-    cursor: move;
-}
-
-.selected-polygon {
-    cursor: pointer;
-}
-
 /* Bootstrap Menu Styles */
 .bootstrap-menu {
     display: flex;
@@ -242,28 +223,3 @@ h3 {
     background-color: #f8f9fa;
     color: #007bff;
 }
-
-/* Context Menu Styles */
-.context-menu {
-    display: none;
-    position: absolute;
-    z-index: 1000;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    padding: 5px 0;
-    min-width: 150px;
-}
-
-.context-menu-item {
-    padding: 8px 15px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.context-menu-item:hover {
-    background-color: #f0f0f0;
-}
-
-

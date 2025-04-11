@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floor Plan Polygon Drawing Tool</title>
+    <title>Floor Plan Furniture Tool</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Floor Plan Organization Tool</h1>
+        <h1>Floor Plan Furniture Tool</h1>
         <div class="row align-items-center mb-3">
             <div class="col-md-6">
                 <div class="input-group input-group-sm">
@@ -34,9 +34,9 @@
                 </div>
             </div>
         </div>
+        <!-- Hidden toggle for dimensions -->
+        <input type="checkbox" id="show-dimensions-toggle" style="display: none;">
         <div class="controls">
-            <button id="commit-btn" class="btn btn-success btn-sm" disabled hidden>Commit Polygon</button>
-            <button id="delete-polygon-btn" class="btn btn-danger btn-sm" disabled hidden>Delete Polygon</button>
             <button id="define-scale-btn" class="btn btn-purple btn-sm scale-btn">Define Scale</button>
             <button id="add-rectangle-btn" class="btn btn-primary btn-sm rectangle-btn">Add Furniture</button>
             <button id="rotate-left-btn" class="btn btn-warning btn-sm rotate-btn" disabled>Rotate Left</button>
@@ -50,18 +50,6 @@
         </div>
 
 
-    </div>
-
-    <!-- Label Modal -->
-    <div id="label-modal" class="modal">
-        <div class="modal-content">
-            <h3>Add Label</h3>
-            <p>Enter a label for this area (e.g., "Living Room", "Kitchen"):</p>
-            <input type="text" id="polygon-label" placeholder="Enter label">
-            <div class="modal-buttons">
-                <button id="save-label-btn" class="btn btn-primary btn-sm">Save</button>
-            </div>
-        </div>
     </div>
 
     <!-- Rectangle Modal -->
@@ -85,11 +73,6 @@
                 <button id="add-rectangle-confirm-btn" class="btn btn-primary btn-sm">Add Furniture</button>
             </div>
         </div>
-    </div>
-
-    <!-- Context Menu -->
-    <div id="context-menu" class="context-menu">
-        <div class="context-menu-item" id="context-menu-delete-btn">Delete Polygon</div>
     </div>
 
     <script src="app.js"></script>
