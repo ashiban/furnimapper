@@ -1482,6 +1482,7 @@ function selectObject(index) {
 
     // Enable the rotate and delete buttons when an object is selected
     document.getElementById('rotate-object-btn').disabled = false;
+    document.getElementById('rotate-left-btn').disabled = false;
     document.getElementById('delete-object-btn').disabled = false;
 
     // Redraw the layer
@@ -1507,6 +1508,7 @@ function deselectObject() {
 
     // Disable the rotate and delete buttons when no object is selected
     document.getElementById('rotate-object-btn').disabled = true;
+    document.getElementById('rotate-left-btn').disabled = true;
     document.getElementById('delete-object-btn').disabled = true;
 
     // Redraw the layer
@@ -1723,6 +1725,7 @@ function clearAllObjects() {
 
     // Disable the rotate and delete buttons
     document.getElementById('rotate-object-btn').disabled = true;
+    document.getElementById('rotate-left-btn').disabled = true;
     document.getElementById('delete-object-btn').disabled = true;
 
     // Redraw the layer
@@ -1731,9 +1734,13 @@ function clearAllObjects() {
     console.log('All objects cleared');
 }
 
-// Rotate Object button handler
+// Rotate Object buttons handlers
 const rotateObjectBtn = document.getElementById('rotate-object-btn');
 rotateObjectBtn.addEventListener('click', rotateSelectedObject);
+
+// Rotate Left button handler
+const rotateLeftBtn = document.getElementById('rotate-left-btn');
+rotateLeftBtn.addEventListener('click', rotateSelectedObjectCounterclockwise);
 
 // Delete Object button handler
 const deleteObjectBtn = document.getElementById('delete-object-btn');
@@ -1758,6 +1765,7 @@ function deleteSelectedObject() {
 
     // Disable the rotate and delete buttons
     document.getElementById('rotate-object-btn').disabled = true;
+    document.getElementById('rotate-left-btn').disabled = true;
     document.getElementById('delete-object-btn').disabled = true;
 
     // Update event handlers for remaining objects
@@ -1951,6 +1959,7 @@ document.getElementById('commit-btn').textContent = 'Start Drawing';
 document.getElementById('commit-btn').disabled = false;
 document.getElementById('delete-polygon-btn').disabled = true;
 document.getElementById('rotate-object-btn').disabled = true; // Initially disabled until an object is selected
+document.getElementById('rotate-left-btn').disabled = true; // Initially disabled until an object is selected
 document.getElementById('delete-object-btn').disabled = true; // Initially disabled until an object is selected
 
 // Initial draw of all layers
