@@ -20,14 +20,14 @@
     <div class="container">
         <h1>Floor Plan Organization Tool</h1>
         <div class="controls">
-            <button id="commit-btn" disabled hidden>Commit Polygon</button>
-            <button id="delete-polygon-btn" disabled hidden>Delete Polygon</button>
-            <button id="define-scale-btn" class="scale-btn">Define Scale</button>
-            <button id="add-rectangle-btn" class="rectangle-btn">Add Furniture</button>
-            <button id="rotate-left-btn" class="rotate-btn" disabled>Rotate Left</button>
-            <button id="rotate-object-btn" class="rotate-btn" disabled>Rotate Right</button>
-            <button id="delete-object-btn" class="delete-btn" disabled>Delete Furniture</button>
-            <button id="export-btn" disabled>Export Floor Grid</button>
+            <button id="commit-btn" class="btn btn-success btn-sm" disabled hidden>Commit Polygon</button>
+            <button id="delete-polygon-btn" class="btn btn-danger btn-sm" disabled hidden>Delete Polygon</button>
+            <button id="define-scale-btn" class="btn btn-purple btn-sm scale-btn">Define Scale</button>
+            <button id="add-rectangle-btn" class="btn btn-primary btn-sm rectangle-btn">Add Furniture</button>
+            <button id="rotate-left-btn" class="btn btn-warning btn-sm rotate-btn" disabled>Rotate Left</button>
+            <button id="rotate-object-btn" class="btn btn-warning btn-sm rotate-btn" disabled>Rotate Right</button>
+            <button id="delete-object-btn" class="btn btn-danger btn-sm delete-btn" disabled>Delete Furniture</button>
+            <button id="export-btn" class="btn btn-secondary btn-sm" disabled>Export Floor Grid</button>
         </div>
 
         <div class="canvas-wrapper">
@@ -38,7 +38,7 @@
             <input type="file" id="image-upload" accept="image/*">
         </div>
         <div class="upload-controls">
-            <button id="import-btn" class="import-btn">Import Floor Grid</button>
+            <button id="import-btn" class="btn btn-info btn-sm import-btn">Import Floor Grid</button>
             <input type="file" id="json-upload" accept=".json" style="display: none;">
             <span id="import-file-name" class="file-name"></span>
         </div>
@@ -52,7 +52,7 @@
             <p>Enter a label for this area (e.g., "Living Room", "Kitchen"):</p>
             <input type="text" id="polygon-label" placeholder="Enter label">
             <div class="modal-buttons">
-                <button id="save-label-btn">Save</button>
+                <button id="save-label-btn" class="btn btn-primary btn-sm">Save</button>
             </div>
         </div>
     </div>
@@ -74,8 +74,8 @@
                 <input type="text" id="rectangle-label" placeholder="Enter label (e.g., Desk, Sofa)">
             </div>
             <div class="modal-buttons">
-                <button id="cancel-rectangle-btn">Cancel</button>
-                <button id="add-rectangle-confirm-btn">Add Furniture</button>
+                <button id="cancel-rectangle-btn" class="btn btn-secondary btn-sm">Cancel</button>
+                <button id="add-rectangle-confirm-btn" class="btn btn-primary btn-sm">Add Furniture</button>
             </div>
         </div>
     </div>
