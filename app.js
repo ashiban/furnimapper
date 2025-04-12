@@ -775,19 +775,20 @@ function createRectangle() {
         console.log(`Object ${label} selected, draggable: ${group.draggable()}`);
     });
 
-    // Add hover event handlers to show/hide full text
+    // Add hover event handlers to show text and auto-select object
     group.on('mouseenter', () => {
         // Show text on hover
         text.visible(true);
+
+        // Auto-select the object on hover
+        selectObject(objectIndex);
+
         layer.batchDraw();
     });
 
     group.on('mouseleave', () => {
-        // Hide text when not hovering, unless selected
-        if (selectedObjectIndex !== objectIndex) {
-            text.visible(false);
-            layer.batchDraw();
-        }
+        // Text visibility is now handled by the selection state
+        // We don't deselect on mouse leave - object stays selected until another is hovered
     });
 
     // Hide the modal
@@ -1023,19 +1024,20 @@ function createObjectFromData(objectData) {
             console.log(`Object ${objectData.label} selected`);
         });
 
-        // Add hover event handlers to show/hide full text
+        // Add hover event handlers to show text and auto-select object
         group.on('mouseenter', () => {
             // Show text on hover
             text.visible(true);
+
+            // Auto-select the object on hover
+            selectObject(objectIndex);
+
             layer.batchDraw();
         });
 
         group.on('mouseleave', () => {
-            // Hide text when not hovering, unless selected
-            if (selectedObjectIndex !== objectIndex) {
-                text.visible(false);
-                layer.batchDraw();
-            }
+            // Text visibility is now handled by the selection state
+            // We don't deselect on mouse leave - object stays selected until another is hovered
         });
 
         // Bring the group to the front to ensure it's visible
@@ -1142,19 +1144,20 @@ function updateObjectEventHandlers() {
             console.log(`Object ${obj.label} selected`);
         });
 
-        // Add updated hover event handlers
+        // Add updated hover event handlers with auto-selection
         obj.group.on('mouseenter', () => {
             // Show text on hover
             obj.text.visible(true);
+
+            // Auto-select the object on hover
+            selectObject(index);
+
             layer.batchDraw();
         });
 
         obj.group.on('mouseleave', () => {
-            // Hide text when not hovering, unless selected
-            if (selectedObjectIndex !== index) {
-                obj.text.visible(false);
-                layer.batchDraw();
-            }
+            // Text visibility is now handled by the selection state
+            // We don't deselect on mouse leave - object stays selected until another is hovered
         });
 
         // Add updated drag handler
