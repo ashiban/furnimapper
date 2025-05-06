@@ -15,7 +15,7 @@ jobs:
       - uses: JorgeLNJunior/render-deploy@v1.4.5
         with:
           service_id: ${{ secrets.FURNI_RENDER_SERVICE_ID }}
-          api_key: ${{ secrets.XFURNI_RENDER_API_ID }}
+          api_key: ${{ secrets.FURNI_RENDER_API_ID }}
           clear_cache: true # Optional: Clear Render's build cache
           wait_deploy: true
 
